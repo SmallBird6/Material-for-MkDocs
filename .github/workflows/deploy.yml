@@ -1,0 +1,20 @@
+name: 自动部署文档网站
+
+on:
+  push:
+    branches:
+      - main  # 当你往 main 分支提交时自动触发
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material
+      - run: mkdocs gh-deploy --force

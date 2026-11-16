@@ -1,0 +1,36 @@
+site_name: 我的知识库
+site_description: 个人技术架构与笔记
+
+theme:
+  name: material
+  language: zh                 # 中文界面
+  palette:
+    # 允许切换浅色/暗黑模式
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换至暗色模式
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换至浅色模式
+  features:
+    - navigation.expand        # 默认展开层级
+    - search.suggest           # 搜索推荐
+    - content.code.copy        # 代码一键复制
+
+# 插件支持（自动搜索）
+plugins:
+  - search
+
+# 渲染增强：原生支持 Mermaid 架构图 + 代码高亮
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
