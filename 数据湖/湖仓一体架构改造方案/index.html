@@ -1,0 +1,3620 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人技术架构与笔记">
+      
+      
+      
+      
+        <link rel="prev" href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%80%BB%E7%BB%93/">
+      
+      
+        <link rel="next" href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>从离线数仓到湖仓一体：架构改造方案说明 - 我的知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="我的知识库" class="md-header__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            我的知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              从离线数仓到湖仓一体：架构改造方案说明
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至暗色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至暗色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="我的知识库" class="md-nav__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    我的知识库
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    数据湖
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Apache-Polaris%E4%BB%8B%E7%BB%8D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Apache Polaris 介绍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%93%8D%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive 迁移 Iceberg 方案
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11.0-%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11%E9%83%A8%E7%BD%B2%E7%AC%94%E8%AE%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11 部署笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v2）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v4）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Polaris-Iceberg%E6%B9%96%E4%BB%93%E9%83%A8%E7%BD%B2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Polaris + Iceberg 湖仓部署
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94-2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2026 年开放表格式(Open Table Format)全景与详细对比
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%8E%9F%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式原理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式技术选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%95%B0%E6%8D%AE%E6%B9%96%E7%AE%80%E4%BB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖简介
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%80%BB%E7%BB%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体总结
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从离线数仓到湖仓一体：架构改造方案说明
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从离线数仓到湖仓一体：架构改造方案说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、现有离线数仓架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="一、现有离线数仓架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 架构总览
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 各组件职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 典型数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、目标湖仓一体架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="二、目标湖仓一体架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 架构总览
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 各组件职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 目标数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、现有架构痛点与湖仓一体优化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、现有架构痛点与湖仓一体优化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 痛点全景
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 逐项对比
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 逐项对比">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 1：存算耦合
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 2：存储成本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3t1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 3：T+1 时效
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 4：元数据管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5acid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 5：ACID 事务
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 6：Schema 演进
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 7：资源调度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 8：小文件问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 9：数据孤岛与权限
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 10：技术生态
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、湖仓一体的其他优势
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="四、湖仓一体的其他优势">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-time-travel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 时间旅行（Time Travel）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-hidden-partitioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 隐藏分区（Hidden Partitioning）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-partition-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 分区演进（Partition Evolution）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 开放格式，无厂商锁定
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 统一批流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 数据安全
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、半结构化与非结构化数据处理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、半结构化与非结构化数据处理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 现有架构的局限
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 湖仓一体的处理能力
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2 湖仓一体的处理能力">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        半结构化数据（JSON / 嵌套结构）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        非结构化数据（图片 / 音视频 / 文档）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 数据类型支持矩阵
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、对计算引擎性能与资源的影响
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、对计算引擎性能与资源的影响">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 总体影响评估
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Spark 性能影响
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 Spark 性能影响">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        读取性能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        写入性能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        资源占用变化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-flink" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Flink 性能影响（新增引擎）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-trino" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Trino 性能影响
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 网络带宽考量
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 性能优化建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        七、改造路径建议
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="七、改造路径建议">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 分阶段实施
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 风险控制
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        八、总结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体架构选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E7%A6%BB%E7%BA%BF%E6%95%B0%E4%BB%93%E5%90%91%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%94%B9%E9%80%A0%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    离线数仓向湖仓一体架构改造说明文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    高质量数据集
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%B8%B4%E5%BA%8A%E5%8C%BB%E5%AD%A6%E7%A0%94%E7%A9%B6%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E8%A7%84%E8%8C%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    临床医学研究质量管理规范
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    什么是高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E6%95%B0%E6%8D%AE%E4%BA%A7%E5%93%81%E4%BA%A7%E4%B8%9A%E4%BF%A1%E5%8F%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗数据产品产业信号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%A7%A3%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗高质量数据集解析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8F%AF%E4%BF%A1%E6%95%B0%E6%8D%AE%E7%A9%BA%E9%97%B4%E4%B8%8E%E8%8D%AF%E4%BC%81RWD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可信数据空间与药企 RWD 数据库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集工作文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、现有离线数仓架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="一、现有离线数仓架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 架构总览
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 各组件职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 典型数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、目标湖仓一体架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="二、目标湖仓一体架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 架构总览
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 各组件职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 目标数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、现有架构痛点与湖仓一体优化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、现有架构痛点与湖仓一体优化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 痛点全景
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 逐项对比
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 逐项对比">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 1：存算耦合
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 2：存储成本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3t1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 3：T+1 时效
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 4：元数据管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5acid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 5：ACID 事务
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 6：Schema 演进
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 7：资源调度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 8：小文件问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 9：数据孤岛与权限
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        痛点 10：技术生态
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、湖仓一体的其他优势
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="四、湖仓一体的其他优势">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-time-travel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 时间旅行（Time Travel）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-hidden-partitioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 隐藏分区（Hidden Partitioning）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-partition-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 分区演进（Partition Evolution）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 开放格式，无厂商锁定
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 统一批流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 数据安全
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、半结构化与非结构化数据处理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、半结构化与非结构化数据处理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 现有架构的局限
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 湖仓一体的处理能力
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2 湖仓一体的处理能力">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        半结构化数据（JSON / 嵌套结构）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        非结构化数据（图片 / 音视频 / 文档）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 数据类型支持矩阵
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、对计算引擎性能与资源的影响
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、对计算引擎性能与资源的影响">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 总体影响评估
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Spark 性能影响
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 Spark 性能影响">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        读取性能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        写入性能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        资源占用变化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-flink" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Flink 性能影响（新增引擎）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-trino" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Trino 性能影响
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 网络带宽考量
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 性能优化建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        七、改造路径建议
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="七、改造路径建议">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 分阶段实施
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 风险控制
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        八、总结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="_1">从离线数仓到湖仓一体：架构改造方案说明</h1>
+<blockquote>
+<p>版本：V1.0
+日期：2026-07-27
+状态：方案论证阶段</p>
+</blockquote>
+<hr />
+<h2 id="_2">一、现有离线数仓架构</h2>
+<h3 id="11">1.1 架构总览</h3>
+<pre class="mermaid"><code>flowchart TB
+    subgraph App["应用层"]
+        AppNode["BI 报表 / 数据大屏 / 即席查询 / 数据服务"]
+    end
+    subgraph Compute["计算引擎层"]
+        Spark["Spark SQL（ETL/批处理）"]
+        Trino["Trino（即席查询）"]
+        Hive["Hive on MR/Tez（遗留任务）"]
+        YARN["YARN（资源调度与分配）"]
+        Spark --&gt; YARN
+        Trino --&gt; YARN
+        Hive --&gt; YARN
+    end
+    subgraph Storage["存储与元数据层"]
+        HDFS["HDFS（分布式文件存储，3 副本冗余）"]
+        HMS["Hive Metastore（MySQL/PostgreSQL 后端）"]
+    end
+    AppNode --&gt; Compute
+    YARN --&gt; HDFS
+    YARN --&gt; HMS</code></pre>
+<h3 id="12">1.2 各组件职责</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+<th>版本现状</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HDFS</strong></td>
+<td>分布式文件存储，数据以 3 副本方式落盘</td>
+<td>Hadoop 3.x</td>
+</tr>
+<tr>
+<td><strong>YARN</strong></td>
+<td>集群资源调度，为 Spark/Hive/MapReduce 分配 CPU 和内存</td>
+<td>Hadoop 3.x</td>
+</tr>
+<tr>
+<td><strong>Hive Metastore</strong></td>
+<td>管理库、表、分区、Schema 等元数据</td>
+<td>Hive 3.x</td>
+</tr>
+<tr>
+<td><strong>Hive on MR/Tez</strong></td>
+<td>遗留的 SQL 查询和 ETL 任务</td>
+<td>逐步淘汰中</td>
+</tr>
+<tr>
+<td><strong>Spark SQL</strong></td>
+<td>主力 ETL 引擎，T+1 批处理</td>
+<td>Spark 3.x</td>
+</tr>
+<tr>
+<td><strong>Trino</strong></td>
+<td>即席查询（Ad-hoc），面向分析师</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13">1.3 典型数据流</h3>
+<pre class="mermaid"><code>flowchart TD
+    DB["业务数据库（MySQL/Oracle）"] --&gt;|"Sqoop / DataX / Canal"| ODS["HDFS 原始层（ODS）"]
+    ODS --&gt;|"Spark SQL / Hive SQL"| DWD["HDFS 明细层（DWD）"]
+    DWD --&gt;|"Spark SQL / Hive SQL"| DWS["HDFS 汇总层（DWS）"]
+    DWS --&gt;|"Spark SQL"| ADS["HDFS 应用层（ADS）"]
+    ADS --&gt;|"Trino / JDBC"| BI["BI 报表 / 数据大屏"]</code></pre>
+<p><strong>核心特征：全链路 T+1，数据以 Hive 表（Parquet/ORC）形式存储在 HDFS 上。</strong></p>
+<hr />
+<h2 id="_3">二、目标湖仓一体架构</h2>
+<h3 id="21">2.1 架构总览</h3>
+<pre class="mermaid"><code>flowchart TB
+    subgraph App["应用层"]
+        AppNode["BI 报表 / 数据大屏 / 即席查询 / 数据服务 / AI 应用"]
+    end
+    subgraph Compute["计算引擎层"]
+        Spark["Spark（批处理）"]
+        Flink["Flink（流处理）"]
+        Trino["Trino（即席查询）"]
+        Other["其他引擎（Doris 等）"]
+    end
+    subgraph Catalog["统一 Catalog 层"]
+        Polaris["Apache Polaris（REST Catalog，统一元数据 + 权限）"]
+        PG["PostgreSQL（元数据持久化）"]
+        Polaris --&gt; PG
+    end
+    subgraph Storage["统一存储层"]
+        MinIO["MinIO（S3 兼容对象存储 / Iceberg 表格式 / Parquet 数据文件）"]
+    end
+    AppNode --&gt; Compute
+    Spark --&gt;|"Iceberg REST Catalog API"| Polaris
+    Flink --&gt;|"Iceberg REST Catalog API"| Polaris
+    Trino --&gt;|"Iceberg REST Catalog API"| Polaris
+    Other --&gt;|"Iceberg REST Catalog API"| Polaris
+    Polaris --&gt; MinIO</code></pre>
+<h3 id="22">2.2 各组件职责</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+<th>替代原有</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MinIO</strong></td>
+<td>S3 兼容对象存储，存放 Iceberg 数据文件</td>
+<td>替代 HDFS</td>
+</tr>
+<tr>
+<td><strong>Apache Iceberg</strong></td>
+<td>开放表格式，ACID 事务、Schema 演进、时间旅行</td>
+<td>替代 Hive 表格式</td>
+</tr>
+<tr>
+<td><strong>Apache Polaris</strong></td>
+<td>Iceberg REST Catalog，统一元数据与权限管理</td>
+<td>替代 Hive Metastore</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td>Polaris 元数据持久化后端</td>
+<td>替代 HMS 的 MySQL</td>
+</tr>
+<tr>
+<td><strong>Spark 4.1</strong></td>
+<td>批处理 ETL（无 Hadoop 依赖）</td>
+<td>升级 Spark 3.x</td>
+</tr>
+<tr>
+<td><strong>Flink 2.1</strong></td>
+<td>实时/准实时流处理（新增能力）</td>
+<td>无（原架构不具备）</td>
+</tr>
+<tr>
+<td><strong>Trino</strong></td>
+<td>即席查询（通过 REST Catalog 对接）</td>
+<td>保留，改对接方式</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23">2.3 目标数据流</h3>
+<pre class="mermaid"><code>flowchart TD
+    Src["业务数据库 / 消息队列（Kafka）"] --&gt; SparkIn["Spark（批量同步）"]
+    Src --&gt; FlinkIn["Flink（实时 CDC）"]
+    SparkIn --&gt; ODS["MinIO + Iceberg 原始层（ODS）"]
+    FlinkIn --&gt; ODS
+    ODS --&gt; DWD["MinIO + Iceberg 明细层（DWD）"]
+    DWD --&gt; DWS["MinIO + Iceberg 汇总层（DWS）"]
+    DWS --&gt; ADS["MinIO + Iceberg 应用层（ADS）"]
+    ADS --&gt; TrinoOut["Trino（即席查询）"]
+    ADS --&gt; SparkOut["Spark（报表）"]
+    ADS --&gt; FlinkOut["Flink（实时大屏）"]</code></pre>
+<p><strong>核心变化：批流一体，ODS 层即可被实时写入，下游分钟级可见。</strong></p>
+<hr />
+<h2 id="_4">三、现有架构痛点与湖仓一体优化</h2>
+<h3 id="31">3.1 痛点全景</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>痛点</th>
+<th>影响</th>
+<th>严重程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>存算耦合，扩容必须同时扩存储和计算</td>
+<td>资源浪费，成本高</td>
+<td>🔴 高</td>
+</tr>
+<tr>
+<td>2</td>
+<td>HDFS 3 副本，存储利用率仅 33%</td>
+<td>硬件成本翻倍</td>
+<td>🔴 高</td>
+</tr>
+<tr>
+<td>3</td>
+<td>T+1 时效，无法支撑实时业务</td>
+<td>业务决策滞后</td>
+<td>🔴 高</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Hive Metastore 单点，多引擎对接复杂</td>
+<td>运维负担重</td>
+<td>🟡 中</td>
+</tr>
+<tr>
+<td>5</td>
+<td>无 ACID 事务，并发写入数据不一致</td>
+<td>数据质量风险</td>
+<td>🔴 高</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Schema 变更困难（ALTER TABLE 锁表）</td>
+<td>迭代速度慢</td>
+<td>🟡 中</td>
+</tr>
+<tr>
+<td>7</td>
+<td>YARN 调度粒度粗，资源争抢严重</td>
+<td>任务排队，SLA 不达标</td>
+<td>🟡 中</td>
+</tr>
+<tr>
+<td>8</td>
+<td>小文件问题（HDFS NameNode 压力）</td>
+<td>集群性能退化</td>
+<td>🟡 中</td>
+</tr>
+<tr>
+<td>9</td>
+<td>引擎间数据孤岛，权限各自为政</td>
+<td>安全合规风险</td>
+<td>🟡 中</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Hadoop 生态老化，社区活跃度下降</td>
+<td>长期技术风险</td>
+<td>🟡 中</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32">3.2 逐项对比</h3>
+<h4 id="1">痛点 1：存算耦合</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构（HDFS + YARN）</th>
+<th>湖仓一体（MinIO + 独立引擎）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>现状</strong></td>
+<td>DataNode 既存数据又跑计算，扩容必须加整机</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>问题</strong></td>
+<td>存储不够时被迫连计算一起扩，反之亦然</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>改造后</strong></td>
+<td>-</td>
+<td>MinIO 独立扩容存储；Spark/Flink 独立扩容计算</td>
+</tr>
+<tr>
+<td><strong>收益</strong></td>
+<td>-</td>
+<td>存储和计算按需弹性伸缩，资源利用率提升 40%+</td>
+</tr>
+</tbody>
+</table>
+<h4 id="2">痛点 2：存储成本</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构</th>
+<th>湖仓一体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>冗余策略</strong></td>
+<td>HDFS 3 副本（1TB 数据占 3TB 磁盘）</td>
+<td>MinIO 纠删码（EC:4 仅需 1.33x 冗余）</td>
+</tr>
+<tr>
+<td><strong>1PB 实际占用</strong></td>
+<td>~3PB</td>
+<td>~1.33PB</td>
+</tr>
+<tr>
+<td><strong>硬件成本</strong></td>
+<td>基准</td>
+<td>降低约 55%</td>
+</tr>
+<tr>
+<td><strong>附加</strong></td>
+<td>HDFS NameNode 内存随文件数线性增长</td>
+<td>MinIO 无此瓶颈，元数据轻量</td>
+</tr>
+</tbody>
+</table>
+<h4 id="3t1">痛点 3：T+1 时效</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构</th>
+<th>湖仓一体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>数据时效</strong></td>
+<td>T+1（隔天可见）</td>
+<td>分钟级（Flink CDC 实时入湖）</td>
+</tr>
+<tr>
+<td><strong>链路</strong></td>
+<td>Sqoop 全量/增量 → HDFS → Spark 批处理</td>
+<td>Kafka/CDC → Flink → Iceberg 表（实时 commit）</td>
+</tr>
+<tr>
+<td><strong>查询可见性</strong></td>
+<td>次日凌晨跑批后可查</td>
+<td>Flink checkpoint 完成后即可查（秒~分钟级）</td>
+</tr>
+<tr>
+<td><strong>批流统一</strong></td>
+<td>批和流是两套系统、两套代码</td>
+<td>同一张 Iceberg 表，Spark 批读 + Flink 流写</td>
+</tr>
+</tbody>
+</table>
+<h4 id="4">痛点 4：元数据管理</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构（Hive Metastore）</th>
+<th>湖仓一体（Polaris）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>协议</strong></td>
+<td>Thrift（私有协议）</td>
+<td>Iceberg REST（开放标准）</td>
+</tr>
+<tr>
+<td><strong>引擎对接</strong></td>
+<td>每个引擎需单独配置 HMS 地址、兼容版本</td>
+<td>统一 REST API，任何兼容引擎即插即用</td>
+</tr>
+<tr>
+<td><strong>多引擎共享</strong></td>
+<td>Spark 用 HMS，Trino 用 HMS Connector，配置各异</td>
+<td>所有引擎指向同一个 Polaris URL</td>
+</tr>
+<tr>
+<td><strong>权限</strong></td>
+<td>HMS 无内置权限，依赖 Ranger/Sentry</td>
+<td>Polaris 内置 RBAC，精确到表/列级别</td>
+</tr>
+<tr>
+<td><strong>凭证管理</strong></td>
+<td>每个引擎配置 HDFS/S3 AK/SK</td>
+<td>Polaris Credential Vending，临时凭证下发</td>
+</tr>
+<tr>
+<td><strong>高可用</strong></td>
+<td>HMS 需额外做 HA（多实例 + ZooKeeper）</td>
+<td>Polaris 无状态，多实例 + 负载均衡即可</td>
+</tr>
+</tbody>
+</table>
+<h4 id="5acid">痛点 5：ACID 事务</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构（Hive 表）</th>
+<th>湖仓一体（Iceberg 表）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事务支持</strong></td>
+<td>Hive ACID（ORC + 事务表），限制多、性能差</td>
+<td>Iceberg 原生 ACID，乐观并发控制</td>
+</tr>
+<tr>
+<td><strong>并发写入</strong></td>
+<td>需加锁，写冲突频繁失败</td>
+<td>多引擎并发写入，自动冲突检测与重试</td>
+</tr>
+<tr>
+<td><strong>读写隔离</strong></td>
+<td>写入过程中读取可能看到脏数据</td>
+<td>快照隔离，写入不影响读取</td>
+</tr>
+<tr>
+<td><strong>原子性</strong></td>
+<td>多步操作非原子（INSERT OVERWRITE 中途失败留残留）</td>
+<td>每次 commit 原子生效，失败自动回滚</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6schema">痛点 6：Schema 演进</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构</th>
+<th>湖仓一体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>加列</strong></td>
+<td><code>ALTER TABLE ADD COLUMNS</code>，需重写元数据，大表可能锁表</td>
+<td>Iceberg 元数据级操作，毫秒完成，不触碰数据文件</td>
+</tr>
+<tr>
+<td><strong>改列类型</strong></td>
+<td>受限（如 INT→BIGINT 需重建表）</td>
+<td>支持安全的类型提升（INT→BIGINT→DECIMAL）</td>
+</tr>
+<tr>
+<td><strong>删列/重命名</strong></td>
+<td>不支持或需重建</td>
+<td>原生支持，基于列 ID 而非列名</td>
+</tr>
+<tr>
+<td><strong>历史数据</strong></td>
+<td>旧分区 Schema 不一致时查询报错</td>
+<td>自动适配，旧文件用旧 Schema 读，新文件用新 Schema</td>
+</tr>
+</tbody>
+</table>
+<h4 id="7">痛点 7：资源调度</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构（YARN）</th>
+<th>湖仓一体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>调度模型</strong></td>
+<td>集中式，所有任务排队等 YARN 分配 Container</td>
+<td>去中心化，Spark/Flink 独立部署</td>
+</tr>
+<tr>
+<td><strong>资源争抢</strong></td>
+<td>Hive 大查询占满队列，Spark ETL 被阻塞</td>
+<td>各引擎独立资源池，互不干扰</td>
+</tr>
+<tr>
+<td><strong>弹性</strong></td>
+<td>扩缩容需加/减 NodeManager 节点</td>
+<td>Spark on K8s / Flink on K8s，Pod 级弹性</td>
+</tr>
+<tr>
+<td><strong>轻量任务</strong></td>
+<td>启动一个 YARN Container 需 10~30 秒</td>
+<td>Spark local 模式 / Flink Session 模式，秒级启动</td>
+</tr>
+</tbody>
+</table>
+<h4 id="8">痛点 8：小文件问题</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构（HDFS）</th>
+<th>湖仓一体（Iceberg + MinIO）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>影响</strong></td>
+<td>NameNode 内存爆炸（每文件 ~150B 元数据），集群退化</td>
+<td>MinIO 无 NameNode 瓶颈</td>
+</tr>
+<tr>
+<td><strong>治理</strong></td>
+<td>需定期跑 merge 任务，额外资源消耗</td>
+<td>Iceberg 内置 <code>rewrite_data_files</code> 自动合并</td>
+</tr>
+<tr>
+<td><strong>流式写入</strong></td>
+<td>Flink 写 HDFS 产生海量小文件</td>
+<td>Iceberg 按 checkpoint 粒度 commit，天然控制文件大小</td>
+</tr>
+</tbody>
+</table>
+<h4 id="9">痛点 9：数据孤岛与权限</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构</th>
+<th>湖仓一体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>元数据</strong></td>
+<td>Spark 看 HMS，Trino 看 HMS Connector，各自缓存</td>
+<td>所有引擎通过 Polaris 看到同一份元数据</td>
+</tr>
+<tr>
+<td><strong>权限</strong></td>
+<td>HDFS ACL + Hive 授权 + Ranger 策略，三套体系</td>
+<td>Polaris RBAC 统一管控</td>
+</tr>
+<tr>
+<td><strong>审计</strong></td>
+<td>分散在各引擎日志中</td>
+<td>Polaris 统一审计日志</td>
+</tr>
+<tr>
+<td><strong>新增引擎</strong></td>
+<td>需重新配置 HMS、HDFS、权限</td>
+<td>指向 Polaris URL 即可，权限自动继承</td>
+</tr>
+</tbody>
+</table>
+<h4 id="10">痛点 10：技术生态</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>现有架构</th>
+<th>湖仓一体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>社区趋势</strong></td>
+<td>Hadoop 生态进入维护期，Cloudera 合并后创新放缓</td>
+<td>Iceberg 是 Apache 顶级项目，Snowflake/Databricks/Apple/Netflix 共同推动</td>
+</tr>
+<tr>
+<td><strong>人才</strong></td>
+<td>Hadoop 运维人才逐渐稀缺</td>
+<td>云原生 + 对象存储是行业主流方向</td>
+</tr>
+<tr>
+<td><strong>兼容性</strong></td>
+<td>绑定 HDFS 协议</td>
+<td>S3 协议是事实标准，可无缝迁移到 AWS S3 / 阿里云 OSS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_5">四、湖仓一体的其他优势</h2>
+<h3 id="41-time-travel">4.1 时间旅行（Time Travel）</h3>
+<p>Iceberg 表保留完整的快照历史：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- 查询昨天凌晨的数据状态</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="k">VERSION</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">OF</span><span class="w"> </span><span class="mi">12345</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1">-- 查询某个时间点的数据</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">OF</span><span class="w"> </span><span class="s1">'2026-07-26 02:00:00'</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">-- 误删数据后回滚</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">CALL</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="k">system</span><span class="p">.</span><span class="n">rollback_to_snapshot</span><span class="p">(</span><span class="s1">'db1.orders'</span><span class="p">,</span><span class="w"> </span><span class="mi">12345</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>应用场景：</strong> 数据审计、误操作恢复、A/B 对比分析、数据血缘追溯。</p>
+<h3 id="42-hidden-partitioning">4.2 隐藏分区（Hidden Partitioning）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">-- 传统 Hive：用户必须知道分区字段</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">logs</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'2026-07-27'</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">hour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'10'</span><span class="p">;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">-- Iceberg：自动分区转换，用户写自然条件</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">logs</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">event_time</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="s1">'2026-07-27 10:00:00'</span><span class="p">;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1">-- Iceberg 自动将 event_time 映射到 day(event_time) 分区，无需用户感知</span>
+</code></pre></div>
+<h3 id="43-partition-evolution">4.3 分区演进（Partition Evolution）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">-- 初期按天分区</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">PARTITION</span><span class="w"> </span><span class="n">FIELD</span><span class="w"> </span><span class="p">(</span><span class="k">day</span><span class="p">(</span><span class="n">order_time</span><span class="p">));</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">-- 业务量增长后改为按小时分区（无需重建表、无需迁移数据）</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="n">PARTITION</span><span class="w"> </span><span class="n">FIELD</span><span class="w"> </span><span class="p">(</span><span class="n">hour</span><span class="p">(</span><span class="n">order_time</span><span class="p">));</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="k">DROP</span><span class="w"> </span><span class="n">PARTITION</span><span class="w"> </span><span class="n">FIELD</span><span class="w"> </span><span class="p">(</span><span class="k">day</span><span class="p">(</span><span class="n">order_time</span><span class="p">));</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">-- 旧数据仍按天分区读取，新数据按小时分区写入，查询自动适配</span>
+</code></pre></div>
+<h3 id="44">4.4 开放格式，无厂商锁定</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>表格式</td>
+<td>Apache Iceberg 是开放标准，非任何厂商私有</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>S3 协议是行业标准，MinIO / AWS S3 / 阿里云 OSS / 华为 OBS 通用</td>
+</tr>
+<tr>
+<td>Catalog</td>
+<td>Iceberg REST 是开放协议，Polaris / Nessie / Tabular / Unity 均兼容</td>
+</tr>
+<tr>
+<td>引擎</td>
+<td>Spark / Flink / Trino / Doris / StarRocks / Dremio / Presto 均原生支持</td>
+</tr>
+<tr>
+<td><strong>退出成本</strong></td>
+<td>任何时候可以换引擎、换存储、换 Catalog，数据无需迁移</td>
+</tr>
+</tbody>
+</table>
+<h3 id="45">4.5 统一批流</h3>
+<pre class="mermaid"><code>flowchart LR
+    T["同一张 Iceberg 表（无需两套表/ETL/权限）"]
+    FlinkW["Flink 实时写入（CDC 数据秒级入湖）"] --&gt; T
+    SparkW["Spark 批量写入（历史数据回刷）"] --&gt; T
+    T --&gt; SparkR["Spark 批量读取（T+1 报表）"]
+    T --&gt; TrinoR["Trino 即席查询（分析师随时查）"]</code></pre>
+<h3 id="46">4.6 数据安全</h3>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Credential Vending</td>
+<td>客户端不存储 S3 AK/SK，Polaris 下发临时凭证</td>
+</tr>
+<tr>
+<td>细粒度 RBAC</td>
+<td>精确到 Catalog / Namespace / Table 级别的读写权限</td>
+</tr>
+<tr>
+<td>审计追踪</td>
+<td>所有操作通过 Polaris 统一记录</td>
+</tr>
+<tr>
+<td>传输加密</td>
+<td>MinIO 支持 TLS，Polaris 支持 HTTPS</td>
+</tr>
+<tr>
+<td>静态加密</td>
+<td>MinIO 支持 SSE-S3 / SSE-KMS 服务端加密</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_6">五、半结构化与非结构化数据处理</h2>
+<h3 id="51">5.1 现有架构的局限</h3>
+<table>
+<thead>
+<tr>
+<th>数据类型</th>
+<th>现有处理方式</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JSON 日志</td>
+<td>存入 HDFS 文本文件，Hive 用 <code>get_json_object()</code> 解析</td>
+<td>无 Schema，查询慢，无法列裁剪</td>
+</tr>
+<tr>
+<td>嵌套 JSON</td>
+<td>多层 <code>get_json_object()</code> 嵌套，SQL 极其复杂</td>
+<td>可维护性差</td>
+</tr>
+<tr>
+<td>图片/音视频</td>
+<td>存 HDFS 小文件 或 外部 NAS</td>
+<td>与数仓割裂，无法关联分析</td>
+</tr>
+<tr>
+<td>PDF/文档</td>
+<td>不在数仓范围内</td>
+<td>数据孤岛</td>
+</tr>
+<tr>
+<td>物联网时序</td>
+<td>单独部署时序数据库</td>
+<td>多套系统，运维成本高</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52">5.2 湖仓一体的处理能力</h3>
+<h4 id="json">半结构化数据（JSON / 嵌套结构）</h4>
+<p><strong>Iceberg V3 + Variant 类型（Iceberg 1.11.0 支持）：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- 创建包含 Variant 列的表（半结构化数据原生存储）</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">app_logs</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">log_id</span><span class="w">      </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">event_time</span><span class="w">  </span><span class="k">TIMESTAMP</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">user_id</span><span class="w">     </span><span class="n">STRING</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">payload</span><span class="w">     </span><span class="n">VARIANT</span><span class="w">          </span><span class="c1">-- JSON 数据直接存入 Variant 列</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">)</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span><span class="p">;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1">-- 写入 JSON 数据</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">app_logs</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="k">current_timestamp</span><span class="p">(),</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="s1">'user_001'</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="n">PARSE_JSON</span><span class="p">(</span><span class="s1">'{"action":"click","page":"/home","duration_ms":1200,"nested":{"os":"iOS","ver":"17.0"}}'</span><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">);</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1">-- 查询嵌套字段（无需 get_json_object）</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">SELECT</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="n">log_id</span><span class="p">,</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="n">payload</span><span class="p">:</span><span class="n">action</span><span class="p">::</span><span class="n">STRING</span><span class="w">        </span><span class="k">AS</span><span class="w"> </span><span class="n">action</span><span class="p">,</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="n">payload</span><span class="p">:</span><span class="n">nested</span><span class="p">:</span><span class="n">os</span><span class="p">::</span><span class="n">STRING</span><span class="w">     </span><span class="k">AS</span><span class="w"> </span><span class="n">os</span><span class="p">,</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="n">payload</span><span class="p">:</span><span class="n">duration_ms</span><span class="p">::</span><span class="nb">INT</span><span class="w">      </span><span class="k">AS</span><span class="w"> </span><span class="n">duration</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="k">FROM</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">app_logs</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">payload</span><span class="p">:</span><span class="n">action</span><span class="p">::</span><span class="n">STRING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'click'</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>优势对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Hive（现有）</th>
+<th>Iceberg Variant（湖仓）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>存储</td>
+<td>整行 JSON 字符串，无法列裁剪</td>
+<td>Variant 二进制编码，支持列级裁剪</td>
+</tr>
+<tr>
+<td>查询</td>
+<td><code>get_json_object(payload, '$.nested.os')</code></td>
+<td><code>payload:nested:os::STRING</code></td>
+</tr>
+<tr>
+<td>性能</td>
+<td>全行扫描 + 字符串解析</td>
+<td>二进制直接定位，性能提升 5~10x</td>
+</tr>
+<tr>
+<td>Schema</td>
+<td>无 Schema，字段拼写错误运行时才发现</td>
+<td>可混合使用固定列 + Variant 灵活列</td>
+</tr>
+<tr>
+<td>演进</td>
+<td>新增字段需改 ETL 代码</td>
+<td>新字段自动包含在 Variant 中，无需改表</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flink 实时 JSON 入湖：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">-- Flink SQL：Kafka JSON → Iceberg 表</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">kafka_logs</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">log_id</span><span class="w">    </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="n">payload</span><span class="w">   </span><span class="n">STRING</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">)</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="s1">'connector'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'kafka'</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="s1">'topic'</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s1">'app-logs'</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="s1">'format'</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s1">'json'</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="p">);</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="n">db1</span><span class="p">.</span><span class="n">app_logs</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="k">SELECT</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="n">log_id</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="k">CAST</span><span class="p">(</span><span class="n">payload</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">VARIANT</span><span class="p">)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="k">FROM</span><span class="w"> </span><span class="n">kafka_logs</span><span class="p">;</span>
+</code></pre></div>
+<h4 id="_7">非结构化数据（图片 / 音视频 / 文档）</h4>
+<p><strong>MinIO 作为统一对象存储：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>MinIO
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── iceberg-warehouse/          ← Iceberg 表数据（结构化 + 半结构化）
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│   ├── db1/
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│   └── db2/
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>├── raw-files/                  ← 非结构化原始文件
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│   ├── images/2026-07-27/
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>│   ├── documents/contracts/
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>│   └── audio/call-records/
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>└── ml-features/                ← AI/ML 特征数据
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    ├── embeddings/
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    └── training-sets/
+</code></pre></div>
+<p><strong>结构化元数据 + 非结构化文件关联：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">-- Iceberg 表存储文件元数据，MinIO 存储文件本体</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">db1</span><span class="p">.</span><span class="n">document_registry</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">doc_id</span><span class="w">       </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="n">doc_name</span><span class="w">     </span><span class="n">STRING</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="n">doc_type</span><span class="w">     </span><span class="n">STRING</span><span class="p">,</span><span class="w">           </span><span class="c1">-- 'pdf', 'image', 'audio'</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="n">file_path</span><span class="w">    </span><span class="n">STRING</span><span class="p">,</span><span class="w">           </span><span class="c1">-- 's3://raw-files/documents/contract_001.pdf'</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="n">file_size</span><span class="w">    </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="n">upload_time</span><span class="w">  </span><span class="k">TIMESTAMP</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="n">ocr_text</span><span class="w">     </span><span class="n">STRING</span><span class="p">,</span><span class="w">           </span><span class="c1">-- OCR 提取的文本（可选）</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="n">embedding</span><span class="w">    </span><span class="nb">ARRAY</span><span class="o">&lt;</span><span class="nb">FLOAT</span><span class="o">&gt;</span><span class="p">,</span><span class="w">     </span><span class="c1">-- 向量化表示（用于 AI 检索）</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="n">tags</span><span class="w">         </span><span class="n">VARIANT</span><span class="w">           </span><span class="c1">-- 灵活标签 {"department":"法务","status":"已审核"}</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="p">)</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">PARTITIONED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="p">(</span><span class="n">doc_type</span><span class="p">,</span><span class="w"> </span><span class="n">days</span><span class="p">(</span><span class="n">upload_time</span><span class="p">));</span>
+</code></pre></div>
+<p><strong>与 AI/ML 工作流集成：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># PyIceberg + MinIO：读取图片元数据 → 下载图片 → 模型推理</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pyiceberg.catalog.rest</span><span class="w"> </span><span class="kn">import</span> <span class="n">RestCatalog</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">catalog</span> <span class="o">=</span> <span class="n">RestCatalog</span><span class="p">(</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"polaris"</span><span class="p">,</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">uri</span><span class="o">=</span><span class="s2">"http://polaris:8181/api/catalog"</span><span class="p">,</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">warehouse</span><span class="o">=</span><span class="s2">"minio_catalog"</span><span class="p">,</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">credential</span><span class="o">=</span><span class="s2">"root:admin123456"</span><span class="p">,</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="p">)</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># 读取 Iceberg 表中的文件注册信息</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="n">table</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">load_table</span><span class="p">(</span><span class="s2">"db1.document_registry"</span><span class="p">)</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="n">row_filter</span><span class="o">=</span><span class="s2">"doc_type = 'image'"</span><span class="p">,</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="n">selected_fields</span><span class="o">=</span><span class="p">(</span><span class="s2">"doc_id"</span><span class="p">,</span> <span class="s2">"file_path"</span><span class="p">,</span> <span class="s2">"embedding"</span><span class="p">),</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="c1"># 通过 MinIO 下载实际文件</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s1">'s3'</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="o">=</span><span class="s1">'http://172.16.15.28:9000'</span><span class="p">)</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>    <span class="n">s3</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="s1">'raw-files'</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'file_path'</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"/tmp/</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">.jpg"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="53">5.3 数据类型支持矩阵</h3>
+<table>
+<thead>
+<tr>
+<th>数据类型</th>
+<th>现有架构</th>
+<th>湖仓一体</th>
+<th>提升</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结构化（行列）</td>
+<td>✅ Hive 表</td>
+<td>✅ Iceberg 表 + ACID</td>
+<td>事务、Schema 演进</td>
+</tr>
+<tr>
+<td>半结构化（JSON）</td>
+<td>⚠️ 文本存储 + UDF 解析</td>
+<td>✅ Variant 原生类型</td>
+<td>性能 5~10x，SQL 简洁</td>
+</tr>
+<tr>
+<td>时序数据</td>
+<td>❌ 需外部时序库</td>
+<td>✅ Iceberg 表 + 分区演进</td>
+<td>统一存储，减少系统数</td>
+</tr>
+<tr>
+<td>图片/音视频</td>
+<td>❌ HDFS 小文件 / 外部 NAS</td>
+<td>✅ MinIO 对象存储 + 元数据表</td>
+<td>统一管理，可关联查询</td>
+</tr>
+<tr>
+<td>文档/PDF</td>
+<td>❌ 不在数仓范围</td>
+<td>✅ MinIO + OCR + 向量化</td>
+<td>纳入数据治理体系</td>
+</tr>
+<tr>
+<td>AI 特征/向量</td>
+<td>❌ 独立特征平台</td>
+<td>✅ Iceberg 表（ARRAY<FLOAT>）</td>
+<td>特征与业务数据同库</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_8">六、对计算引擎性能与资源的影响</h2>
+<h3 id="61">6.1 总体影响评估</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>影响方向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>存储 I/O</td>
+<td>⬇️ 略有变化</td>
+<td>网络存储 vs 本地磁盘，延迟增加但吞吐可通过并行弥补</td>
+</tr>
+<tr>
+<td>查询性能</td>
+<td>⬆️ 提升</td>
+<td>Iceberg 统计信息 + 列裁剪 + 谓词下推更优</td>
+</tr>
+<tr>
+<td>资源占用</td>
+<td>⬇️ 降低</td>
+<td>去除 YARN / HDFS Client / HMS Client 开销</td>
+</tr>
+<tr>
+<td>弹性伸缩</td>
+<td>⬆️ 大幅提升</td>
+<td>存算分离后计算资源可独立扩缩</td>
+</tr>
+<tr>
+<td>运维复杂度</td>
+<td>⬇️ 降低</td>
+<td>不再维护 HDFS / YARN / ZooKeeper / HMS</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-spark">6.2 Spark 性能影响</h3>
+<h4 id="_9">读取性能</h4>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>HDFS + Hive 表</th>
+<th>MinIO + Iceberg 表</th>
+<th>差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全表扫描</td>
+<td>本地磁盘读取，延迟 ~1ms</td>
+<td>网络读取，延迟 ~5ms</td>
+<td>MinIO 略慢</td>
+</tr>
+<tr>
+<td>全表扫描（吞吐）</td>
+<td>受限于单机磁盘带宽</td>
+<td>多节点并行拉取，聚合带宽更高</td>
+<td>Iceberg 持平或更优</td>
+</tr>
+<tr>
+<td>分区裁剪</td>
+<td>Hive 分区（目录级）</td>
+<td>Iceberg 隐藏分区（元数据级）</td>
+<td>Iceberg 更精准</td>
+</tr>
+<tr>
+<td>列裁剪</td>
+<td>Parquet/ORC 列裁剪</td>
+<td>Parquet 列裁剪 + Iceberg 列统计</td>
+<td>持平</td>
+</tr>
+<tr>
+<td>谓词下推</td>
+<td>Parquet min/max</td>
+<td>Iceberg 文件级 + 行组级 min/max + 分区统计</td>
+<td>Iceberg 更优（多一层文件级过滤）</td>
+</tr>
+<tr>
+<td>小文件读取</td>
+<td>HDFS 小文件 → NameNode 瓶颈</td>
+<td>MinIO 无此问题 + Iceberg 自动合并</td>
+<td>Iceberg 显著更优</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_10">写入性能</h4>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>HDFS + Hive</th>
+<th>MinIO + Iceberg</th>
+<th>差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>批量写入</td>
+<td>3 副本写入（写放大 3x）</td>
+<td>MinIO 纠删码（写放大 ~1.33x）</td>
+<td>Iceberg 写入更快</td>
+</tr>
+<tr>
+<td>并发写入</td>
+<td>需加锁，冲突失败</td>
+<td>乐观并发，自动重试</td>
+<td>Iceberg 更优</td>
+</tr>
+<tr>
+<td>流式写入</td>
+<td>不支持（HDFS 不擅长）</td>
+<td>Flink + Iceberg 原生支持</td>
+<td>新增能力</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_11">资源占用变化</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>现有 Spark on YARN 资源开销：
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├── YARN ResourceManager        ~2GB（集群级）
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├── YARN NodeManager            ~1GB × N 节点
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├── HDFS DataNode               ~4GB × N 节点
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>├── HDFS NameNode               ~8GB+（随文件数增长）
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├── ZooKeeper                   ~1GB × 3 节点
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>├── Hive Metastore              ~2GB × 2 节点
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>└── Spark Executor              实际计算资源
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>湖仓一体资源开销：
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>├── MinIO                       ~2GB × N 节点（轻量）
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>├── PostgreSQL                  ~2GB（已有实例复用）
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>├── Polaris Server              ~2GB × 1~2 实例
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>└── Spark Executor              实际计算资源（相同）
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>节省：YARN + HDFS + ZooKeeper + HMS 的固定开销（约 20~50GB 集群级）
+</code></pre></div>
+<h3 id="63-flink">6.3 Flink 性能影响（新增引擎）</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>部署模式</td>
+<td>Flink Session / Application on K8s，无需 YARN</td>
+</tr>
+<tr>
+<td>Checkpoint</td>
+<td>基于 Iceberg commit，每 10s~60s 一次，数据分钟级可见</td>
+</tr>
+<tr>
+<td>资源</td>
+<td>每个 Flink 作业独立 TaskManager，资源隔离</td>
+</tr>
+<tr>
+<td>与 Spark 互不影响</td>
+<td>Flink 流式写入不占用 Spark 批处理资源</td>
+</tr>
+<tr>
+<td>小文件控制</td>
+<td>Iceberg 按 checkpoint 粒度生成文件，天然避免小文件</td>
+</tr>
+</tbody>
+</table>
+<h3 id="64-trino">6.4 Trino 性能影响</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>现有（Hive Connector）</th>
+<th>改造后（Iceberg REST Connector）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>元数据获取</td>
+<td>通过 HMS Thrift，有缓存延迟</td>
+<td>通过 Polaris REST，实时一致</td>
+</tr>
+<tr>
+<td>查询规划</td>
+<td>HMS 分区信息 + HDFS 文件列表</td>
+<td>Iceberg 元数据（manifest 文件），更快</td>
+</tr>
+<tr>
+<td>文件裁剪</td>
+<td>分区级</td>
+<td>分区 + 文件级 + 行组级（三层过滤）</td>
+</tr>
+<tr>
+<td>并发查询</td>
+<td>共享 HMS 连接池，高并发时瓶颈</td>
+<td>Polaris 无状态，水平扩展</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Trino 自带元数据缓存</td>
+<td>可配合 Iceberg 元数据缓存进一步优化</td>
+</tr>
+</tbody>
+</table>
+<h3 id="65">6.5 网络带宽考量</h3>
+<p>存算分离后，计算节点通过网络访问 MinIO，需要关注：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>网络带宽</td>
+<td>计算节点与 MinIO 之间 ≥ 10Gbps 网络</td>
+</tr>
+<tr>
+<td>部署拓扑</td>
+<td>MinIO 与计算节点同机房 / 同机架，降低延迟</td>
+</tr>
+<tr>
+<td>并行度</td>
+<td>Iceberg 读取天然并行（多文件多连接），可充分利用带宽</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>热数据可启用 Spark 本地缓存（<code>spark.sql.catalog.polaris.cache-enabled=true</code>）</td>
+</tr>
+<tr>
+<td>监控</td>
+<td>关注 MinIO 的 API 请求延迟和吞吐量指标</td>
+</tr>
+</tbody>
+</table>
+<h3 id="66">6.6 性能优化建议</h3>
+<table>
+<thead>
+<tr>
+<th>优化项</th>
+<th>配置</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Iceberg 文件合并</td>
+<td><code>CALL system.rewrite_data_files(table =&gt; 'db1.t1')</code></td>
+<td>减少小文件，提升扫描速度</td>
+</tr>
+<tr>
+<td>排序优化</td>
+<td><code>CALL system.rewrite_data_files(..., options =&gt; map('sort-order', 'zorder(user_id, event_time)'))</code></td>
+<td>提升过滤查询性能</td>
+</tr>
+<tr>
+<td>快照清理</td>
+<td><code>CALL system.expire_snapshots('db1.t1', TIMESTAMP '2026-07-01')</code></td>
+<td>减少元数据膨胀</td>
+</tr>
+<tr>
+<td>Spark 并行度</td>
+<td><code>spark.sql.catalog.polaris.s3.multipart-size=33554432</code></td>
+<td>大文件分片并行上传</td>
+</tr>
+<tr>
+<td>元数据缓存</td>
+<td>Polaris 内置 Caffeine 缓存（默认 ~1GB）</td>
+<td>减少 PostgreSQL 查询</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_12">七、改造路径建议</h2>
+<h3 id="71">7.1 分阶段实施</h3>
+<pre class="mermaid"><code>flowchart TD
+    P1["第一阶段（1~2 月）：基础搭建 + 试点&lt;br&gt;部署 MinIO + Polaris + PG；部署 Spark 4.1 + Flink 2.1；1~2 业务域试点与验证"]
+    P2["第二阶段（2~3 月）：核心迁移&lt;br&gt;ODS/DWD/DWS/ADS 迁移至 Iceberg；切换 Spark ETL；Trino 对接 Polaris；引入 Flink CDC"]
+    P3["第三阶段（1~2 月）：全面切换 + 优化&lt;br&gt;剩余任务迁移；文件合并与排序调优；完善 Polaris RBAC；下线 HDFS / YARN / HMS"]
+    P4["第四阶段（持续）：深化应用&lt;br&gt;半结构化入湖；非结构化数据治理；AI/ML 特征存储；数据服务 API 化"]
+    P1 --&gt; P2 --&gt; P3 --&gt; P4</code></pre>
+<h3 id="72">7.2 风险控制</h3>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>应对措施</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>迁移期间数据不一致</td>
+<td>双写双读验证期（新旧架构并行 2~4 周）</td>
+</tr>
+<tr>
+<td>性能回退</td>
+<td>试点阶段充分压测，对比 TPC-DS 基准</td>
+</tr>
+<tr>
+<td>团队技能不足</td>
+<td>Iceberg / Flink 专项培训</td>
+</tr>
+<tr>
+<td>MinIO 单点故障</td>
+<td>MinIO 分布式部署（≥4 节点纠删码）</td>
+</tr>
+<tr>
+<td>回退方案</td>
+<td>迁移期间 HDFS 数据保留，随时可切回</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_13">八、总结</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>现有离线数仓</th>
+<th>湖仓一体</th>
+<th>提升</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据时效</td>
+<td>T+1</td>
+<td>分钟级</td>
+<td>从"看昨天"到"看现在"</td>
+</tr>
+<tr>
+<td>存储成本</td>
+<td>3 副本（3x）</td>
+<td>纠删码（1.33x）</td>
+<td>降低 55%</td>
+</tr>
+<tr>
+<td>事务安全</td>
+<td>无 / 弱 ACID</td>
+<td>完整 ACID</td>
+<td>消除数据不一致风险</td>
+</tr>
+<tr>
+<td>Schema 演进</td>
+<td>困难</td>
+<td>原生支持</td>
+<td>迭代效率提升</td>
+</tr>
+<tr>
+<td>引擎互操作</td>
+<td>各自对接 HMS</td>
+<td>统一 REST Catalog</td>
+<td>新引擎接入从"天"到"分钟"</td>
+</tr>
+<tr>
+<td>权限管理</td>
+<td>三套体系</td>
+<td>Polaris 统一 RBAC</td>
+<td>安全合规简化</td>
+</tr>
+<tr>
+<td>半结构化数据</td>
+<td>UDF 硬解析</td>
+<td>Variant 原生类型</td>
+<td>性能 5~10x</td>
+</tr>
+<tr>
+<td>非结构化数据</td>
+<td>不在数仓范围</td>
+<td>MinIO 统一存储 + 元数据表</td>
+<td>纳入数据治理</td>
+</tr>
+<tr>
+<td>弹性伸缩</td>
+<td>存算绑定</td>
+<td>存算独立扩缩</td>
+<td>资源利用率 +40%</td>
+</tr>
+<tr>
+<td>运维复杂度</td>
+<td>HDFS+YARN+ZK+HMS</td>
+<td>MinIO+Polaris+PG</td>
+<td>组件数减少 60%</td>
+</tr>
+<tr>
+<td>技术方向</td>
+<td>Hadoop 生态（维护期）</td>
+<td>云原生 + 开放标准</td>
+<td>面向未来 5~10 年</td>
+</tr>
+</tbody>
+</table>
+<p><strong>湖仓一体不是简单的组件替换，而是数据架构范式的升级：从"以存储为中心、批处理为主"转向"以数据为中心、批流一体、开放互联"。</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

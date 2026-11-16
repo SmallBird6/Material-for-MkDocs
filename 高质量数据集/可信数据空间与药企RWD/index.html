@@ -1,0 +1,1466 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人技术架构与笔记">
+      
+      
+      
+      
+        <link rel="prev" href="../%E5%8C%BB%E7%96%97%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%A7%A3%E6%9E%90/">
+      
+      
+        <link rel="next" href="../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%96%87%E6%A1%A3/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>可信数据空间与药企 RWD 数据库 - 我的知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rwd" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="我的知识库" class="md-header__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            我的知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              可信数据空间与药企 RWD 数据库
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至暗色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至暗色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="我的知识库" class="md-nav__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    我的知识库
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    数据湖
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Apache-Polaris%E4%BB%8B%E7%BB%8D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Apache Polaris 介绍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Hive%E8%BF%81%E7%A7%BBIceberg%E6%93%8D%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive 迁移 Iceberg 方案
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Iceberg-1.11.0-%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Iceberg-1.11%E9%83%A8%E7%BD%B2%E7%AC%94%E8%AE%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11 部署笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v2）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v4）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/Polaris-Iceberg%E6%B9%96%E4%BB%93%E9%83%A8%E7%BD%B2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Polaris + Iceberg 湖仓部署
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94-2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2026 年开放表格式(Open Table Format)全景与详细对比
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%8E%9F%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式原理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式技术选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E6%95%B0%E6%8D%AE%E6%B9%96%E7%AE%80%E4%BB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖简介
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%80%BB%E7%BB%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体总结
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E6%94%B9%E9%80%A0%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从离线数仓到湖仓一体：架构改造方案说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体架构选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E6%95%B0%E6%8D%AE%E6%B9%96/%E7%A6%BB%E7%BA%BF%E6%95%B0%E4%BB%93%E5%90%91%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%94%B9%E9%80%A0%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    离线数仓向湖仓一体架构改造说明文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    高质量数据集
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E4%B8%B4%E5%BA%8A%E5%8C%BB%E5%AD%A6%E7%A0%94%E7%A9%B6%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E8%A7%84%E8%8C%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    临床医学研究质量管理规范
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    什么是高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%8C%BB%E7%96%97%E6%95%B0%E6%8D%AE%E4%BA%A7%E5%93%81%E4%BA%A7%E4%B8%9A%E4%BF%A1%E5%8F%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗数据产品产业信号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%8C%BB%E7%96%97%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%A7%A3%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗高质量数据集解析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可信数据空间与药企 RWD 数据库
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可信数据空间与药企 RWD 数据库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        什么是可信数据空间？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rwd_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么药企建设RWD数据库需要可信数据空间？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rwd_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可信数据空间能为药企RWD数据库建设解决什么？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rwd_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可信数据空间能否完全满足药企RWD数据库需求？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        药企最适合采用什么路径？
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集工作文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        什么是可信数据空间？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rwd_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么药企建设RWD数据库需要可信数据空间？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rwd_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可信数据空间能为药企RWD数据库建设解决什么？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rwd_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可信数据空间能否完全满足药企RWD数据库需求？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        药企最适合采用什么路径？
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="rwd">可信数据空间与药企 RWD 数据库</h1>
+<p>过去几年，真实世界数据（RWD）和真实世界证据（RWE）正在从“科研工具”逐渐变成药企准入、医学、市场和产品生命周期管理的重要基础设施。</p>
+<p>无论是医保谈判、医院准入、临床专家教育，还是产品疗效、安全性、经济性证据建设，药企都越来越需要基于多中心、大样本、长期随访的真实世界数据，持续生成高质量证据。</p>
+<p>但一个现实问题也越来越突出：</p>
+<p>药企需要真实世界数据，医院掌握真实世界数据，但医疗数据不能简单地“拿出来、拷走、卖给药企”。</p>
+<p>医疗数据涉及患者隐私、医院管理责任、伦理审查、数据安全、成果转化和收益分配。传统“数据交付式合作”正在面临越来越高的合规压力。</p>
+<p>在这个背景下，“可信数据空间”开始成为医疗数据流通和药企RWD数据库建设中的一个关键概念。</p>
+<h2 id="_1">什么是可信数据空间？</h2>
+<p>简单理解，可信数据空间不是一个普通数据库，也不是一个文件传输平台，而是一套让多方主体在可信规则下开展数据协作的基础设施。</p>
+<p>它的核心不是“把数据搬出去”，而是让数据在安全、可控、可审计的环境中被使用。</p>
+<p>在医疗场景中，可信数据空间可以连接医院、药企、数据交易所、数商、科研机构和监管相关方，通过统一的身份认证、权限控制、用途约束、过程留痕、安全计算和结果审核，实现医疗数据的合规流通与价值转化。</p>
+<p>换句话说，可信数据空间解决的不是“谁能拿到数据”，而是：</p>
+<p>谁可以在什么授权范围内，基于什么目的，以什么方式使用数据，并且整个过程如何被记录、审核和追责。</p>
+<p>这也是它与传统数据库最大的区别。</p>
+<p>传统数据库更强调“数据集中存储”；可信数据空间更强调“数据在可信规则下可用、可控、可管”。</p>
+<h2 id="rwd_1">为什么药企建设RWD数据库需要可信数据空间？</h2>
+<p>药企建设RWD数据库，核心目标不是简单收集数据，而是形成可持续产生证据的能力。</p>
+<p>例如，药企可能需要基于RWD完成以下工作：</p>
+<ul>
+<li>
+<p>产品疗效与安全性评价；</p>
+</li>
+<li>
+<p>真实世界人群特征分析；</p>
+</li>
+<li>
+<p>优势患者人群识别；</p>
+</li>
+<li>
+<p>医保准入和卫生经济学证据生成；</p>
+</li>
+<li>
+<p>DRG/DIP支付影响分析；</p>
+</li>
+<li>
+<p>临床路径优化研究；</p>
+</li>
+<li>
+<p>预测模型开发与外部验证；</p>
+</li>
+<li>
+<p>产品上市后真实世界证据补充；</p>
+</li>
+<li>
+<p>多中心专家科研合作与论文发表。</p>
+</li>
+</ul>
+<p>这些需求都离不开医院真实世界数据。</p>
+<p>但医疗数据具有高度敏感性。电子病历、检验检查结果、用药记录、诊断信息、随访资料等，都可能涉及个人信息甚至敏感个人信息。即使经过脱敏，也仍然需要评估重识别风险、明确使用目的、限定授权范围，并完成必要的伦理和院内审批流程。</p>
+<p>因此，药企如果仍然沿用过去“把数据脱敏后交给企业”的模式，容易面临几个问题：</p>
+<ol>
+<li>
+<p>医院担心数据出域后不可控；</p>
+</li>
+<li>
+<p>药企难以证明数据使用没有超范围；</p>
+</li>
+<li>
+<p>多中心数据标准不统一，难以持续更新；</p>
+</li>
+<li>
+<p>合作成果难以形成清晰的权属和收益分配；</p>
+</li>
+<li>
+<p>未来用于监管、准入或学术推广时，证据链不够完整。</p>
+</li>
+</ol>
+<p>可信数据空间的价值，正是在于为这些问题提供一个新的解决框架。</p>
+<h2 id="rwd_2">可信数据空间能为药企RWD数据库建设解决什么？</h2>
+<p>解决“数据不出域”的安全问题</p>
+<p>医疗数据合作最大的底线，是不能把原始医疗数据变成不可控流转的资产。</p>
+<p>可信数据空间可以通过沙箱、TEE、隐私计算、联邦学习、安全多方计算等方式，实现“数据可用不可见”。</p>
+<p>也就是说，药企并不一定直接获得原始数据，而是在授权范围内进行统计分析、模型训练、队列筛选或结果验证。</p>
+<p>数据可以留在医院、区域平台或受控环境中，药企获得的是经过审核的计算结果、分析报告、模型参数、数据产品或研究结论。</p>
+<p>这大大降低了原始数据复制、外泄、滥用和超范围使用的风险。</p>
+<p>解决多中心RWD协作问题</p>
+<p>单中心数据往往存在样本量不足、代表性有限、外推性不强的问题。</p>
+<p>药企真正需要的是多中心、跨区域、可持续更新的RWD数据库。</p>
+<p>可信数据空间可以在统一规则下连接多家医院，让不同医院的数据在不直接汇聚原始数据的情况下，参与同一项真实世界研究或模型验证。</p>
+<p>例如，药企可以围绕某个产品、适应症或临床问题，联合多家医院建设专病队列，完成数据标准化、变量映射、结局定义、模型开发和外部验证。</p>
+<p>这使RWD数据库从“一次性数据包”转向“持续更新的数据协作网络”。</p>
+<p>解决过程可审计问题</p>
+<p>对于药企而言，RWD证据未来不仅要回答“数据支持什么结论”，还要回答“数据是怎么来的、怎么治理的、谁授权的、怎么使用的、有没有超范围”。</p>
+<p>可信数据空间可以记录数据使用全过程，包括主体身份、授权范围、调用数据、运行算法、分析过程、结果导出、审批记录等。</p>
+<p>这对于药企非常关键。</p>
+<p>因为无论是面对医院、专家、医保、监管还是内部合规部门，药企都需要证明：</p>
+<ul>
+<li>
+<p>数据来源合法；</p>
+</li>
+<li>
+<p>使用目的明确；</p>
+</li>
+<li>
+<p>处理过程合规；</p>
+</li>
+<li>
+<p>分析结果可追溯；</p>
+</li>
+<li>
+<p>合作流程可审计。</p>
+</li>
+</ul>
+<p>可信数据空间让RWD数据库不只是“有数据”，而是具备完整的合规证据链。</p>
+<p>解决持续更新问题</p>
+<p>传统数据合作往往是项目制、一次性交付。</p>
+<p>项目结束后，数据库也就停止更新。随着诊疗路径、用药方案、医保支付政策和患者结构变化，旧数据很快会失去时效性。</p>
+<p>而可信数据空间更适合支持持续型RWD合作。</p>
+<p>医院持续沉淀数据，药企根据不同产品和研究问题，在授权范围内调用和分析数据。不同项目之间可以复用治理标准、数据模型和合作机制。</p>
+<p>这让RWD数据库从“静态资产”变成“动态证据平台”。</p>
+<p>解决医院参与动力问题</p>
+<p>医院不是简单的数据提供方，而是医疗数据成果的形成者、治理者和转化主体。</p>
+<p>如果药企只是购买数据，医院的积极性和合规性都难以保障。</p>
+<p>更合理的方式，是将经过治理、脱敏、标准化、结构化和实质性加工后的医疗数据，形成数据产品、数据知识产权、专病数据库、预测模型、知识图谱或分析报告，再通过成果转化或数据交易方式开展合作。</p>
+<p>在这个过程中，医院可以获得科研成果、论文产出、课题基础、数据资产沉淀和转化收益；专家可以围绕真实临床问题开展高质量研究；药企则获得合规、稳定、可持续的RWD证据来源。</p>
+<p>这才是真正的三赢合作</p>
+<h2 id="rwd_3">可信数据空间能否完全满足药企RWD数据库需求？</h2>
+<p>答案是：不能完全替代，但可以成为关键底座。</p>
+<p>可信数据空间解决的是“数据如何安全、可信、可控地被使用”的问题。</p>
+<p>但药企真正建设高质量RWD数据库，还需要叠加五项能力。</p>
+<p>专病队列设计能力</p>
+<p>药企必须明确数据库建设目标。</p>
+<p>是为了支持医保谈判？医院准入？上市后安全性研究？真实世界疗效评价？卫生经济学分析？还是优势人群识别？</p>
+<p>不同目标决定不同的入排标准、变量体系、结局指标和统计方法。</p>
+<p>没有清晰研究设计，可信数据空间也只是一个安全环境，不能自动生成高质量证据。</p>
+<p>数据治理能力</p>
+<p>医院真实世界数据并不天然等于高质量RWD。</p>
+<p>现实中，临床数据常常存在字段缺失、编码不统一、诊断标准不一致、结局记录不完整、随访不足、检验单位不统一等问题。</p>
+<p>因此，必须对数据进行标准化、结构化、质控、变量映射和缺失值处理。</p>
+<p>可信数据空间可以保障数据使用安全，但不能自动把低质量数据变成高质量数据。</p>
+<p>伦理与合规能力</p>
+<p>真实世界研究通常仍然需要伦理审查、知情同意或免知情同意论证、数据安全评估、脱敏匿名化说明、重识别风险评估和院内审批。</p>
+<p>可信数据空间不能替代伦理审查，也不能绕过医院内部管理流程。</p>
+<p>它是合规使用环境，不是合规豁免工具。</p>
+<p>统计和RWE方法学能力</p>
+<p>RWD最大的挑战之一，是偏倚和混杂因素控制。</p>
+<p>药企需要通过合理的研究设计和统计方法，提升真实世界证据的可信度。</p>
+<p>例如倾向评分匹配、逆概率加权、敏感性分析、亚组分析、竞争风险模型、时间依赖变量处理等，都是高质量RWE研究中常见的方法学工具。</p>
+<p>没有方法学支撑，RWD数据库很容易停留在“描述性统计”，难以真正服务产品价值证明。</p>
+<p>成果转化和交易设计能力</p>
+<p>医疗数据合作不能停留在技术层面，还必须回答几个商业和合规问题：</p>
+<ul>
+<li>
+<p>数据产品的权属如何确认？</p>
+</li>
+<li>
+<p>医院和专家如何获得合理收益？</p>
+</li>
+<li>
+<p>药企获得的是独家许可还是非独家许可？</p>
+</li>
+<li>
+<p>数据产品如何定价？</p>
+</li>
+<li>
+<p>是否通过数据交易所挂牌？</p>
+</li>
+<li>
+<p>是否形成数据知识产权登记？</p>
+</li>
+<li>
+<p>收益如何入账？</p>
+</li>
+<li>
+<p>合作期限如何约定？</p>
+</li>
+</ul>
+<p>这些问题不解决，RWD数据库建设很难规模化、持续化。</p>
+<h2 id="_2">药企最适合采用什么路径？</h2>
+<p>对于药企而言，未来建设RWD数据库，更适合采用一种组合路径：</p>
+<p>数据知识产权成果转化 + 数据交易所场内交易 + 可信数据空间交付 + RWE证据生成。</p>
+<p>具体来说，可以分为五步。</p>
+<ol>
+<li>
+<p>第一步，药企提出数据需求。<br />
+    围绕产品、适应症、临床场景和证据目标，明确需要建设什么样的RWD数据库。例如疗效评价数据库、安全性数据库、卫生经济学数据库、优势人群识别数据库或预测模型验证数据库。</p>
+</li>
+<li>
+<p>第二步，医院和专家形成数据成果。<br />
+    医院在伦理和院内审批基础上，由临床专家牵头，联合数商或科研服务机构，对院内数据进行治理、脱敏、标准化和实质性加工，形成专病数据集、模型参数、知识图谱、分析报告或数据产品。</p>
+</li>
+<li>
+<p>第三步，完成数据知识产权登记或成果确认。<br />
+    将已经形成的数据产品或数据成果，通过数据知识产权登记、科技成果转化认定、院内成果管理等方式，明确成果属性、权属边界和转化基础。</p>
+</li>
+<li>
+<p>第四步，通过数据交易所或成果转化方式合作。<br />
+    药企不是直接购买原始数据，而是通过授权许可、联合开发、成果转化或场内交易方式，获得特定用途、特定期限、特定范围内的数据产品使用权。</p>
+</li>
+<li>
+<p>第五步，在可信数据空间内完成应用和交付。</p>
+</li>
+</ol>
+<p>数据不必直接出院。药企可以在可信数据空间内完成统计分析、模型训练、结果验证和证据生成，最终导出经过审核的研究结果、分析报告、模型参数或RWE证据包。</p>
+<p>这一路径的关键，不是“绕开监管”，而是把数据合作从灰色的数据交付，升级为有规则、有权属、有合同、有场景、有审计、有收益分配的成果转化合作。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

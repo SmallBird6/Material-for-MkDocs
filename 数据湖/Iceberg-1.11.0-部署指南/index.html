@@ -1,0 +1,2396 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人技术架构与笔记">
+      
+      
+      
+      
+        <link rel="prev" href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/">
+      
+      
+        <link rel="next" href="../Iceberg-1.11%E9%83%A8%E7%BD%B2%E7%AC%94%E8%AE%B0/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Iceberg 1.11.0 部署文档（hadoop105 客户端节点） - 我的知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#iceberg-1110-hadoop105" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="我的知识库" class="md-header__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            我的知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至暗色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至暗色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="我的知识库" class="md-nav__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    我的知识库
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    数据湖
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Apache-Polaris%E4%BB%8B%E7%BB%8D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Apache Polaris 介绍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%93%8D%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive 迁移 Iceberg 方案
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 总体说明
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 总体说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 节点角色
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 关键认知
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 软件版本清单（已核实）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-hadoop105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 系统环境准备（hadoop105）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 系统环境准备（hadoop105）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 hosts 与基础配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-jdk-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 安装 JDK 17
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-jdk-17-yarn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 分发 JDK 17 到集群节点（YARN 容器必须）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hadoop-hive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 下发 Hadoop / Hive 客户端配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 下发 Hadoop / Hive 客户端配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-hadoop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 拷贝 Hadoop 客户端（保证与集群版本一致）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 环境变量
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 验证集群连通性
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-spark-413-iceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 部署 Spark 4.1.3 + Iceberg
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 部署 Spark 4.1.3 + Iceberg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 安装 Spark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-spark-envsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 配置 spark-env.sh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-spark-defaultsconficeberg-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 配置 spark-defaults.conf（Iceberg Catalog 核心配置）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-flink-213-iceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 部署 Flink 2.1.3 + Iceberg
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 部署 Flink 2.1.3 + Iceberg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-flink" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 安装 Flink
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-jvm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 环境变量与 JVM 配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-flink-hive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 为 Flink 提供 Hive 客户端依赖
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-configyamlflink-2x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 配置 config.yaml（Flink 2.x 新配置格式）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-hive-hdfs-hadoop102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Hive / HDFS 侧准备（在 hadoop102 执行一次）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 部署验证
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 部署验证">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-spark-hadoop105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Spark 验证（hadoop105）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-flink-hadoop105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Flink 验证（hadoop105）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 跨引擎互通验证（核心价值）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-hive-hadoop102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Hive 侧确认（hadoop102）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 常见问题（FAQ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 下载地址汇总
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 后续可选增强
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11%E9%83%A8%E7%BD%B2%E7%AC%94%E8%AE%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11 部署笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v2）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v4）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Polaris-Iceberg%E6%B9%96%E4%BB%93%E9%83%A8%E7%BD%B2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Polaris + Iceberg 湖仓部署
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94-2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2026 年开放表格式(Open Table Format)全景与详细对比
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%8E%9F%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式原理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式技术选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%95%B0%E6%8D%AE%E6%B9%96%E7%AE%80%E4%BB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖简介
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%80%BB%E7%BB%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体总结
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E6%94%B9%E9%80%A0%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从离线数仓到湖仓一体：架构改造方案说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体架构选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E7%A6%BB%E7%BA%BF%E6%95%B0%E4%BB%93%E5%90%91%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%94%B9%E9%80%A0%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    离线数仓向湖仓一体架构改造说明文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    高质量数据集
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%B8%B4%E5%BA%8A%E5%8C%BB%E5%AD%A6%E7%A0%94%E7%A9%B6%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E8%A7%84%E8%8C%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    临床医学研究质量管理规范
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    什么是高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E6%95%B0%E6%8D%AE%E4%BA%A7%E5%93%81%E4%BA%A7%E4%B8%9A%E4%BF%A1%E5%8F%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗数据产品产业信号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%A7%A3%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗高质量数据集解析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8F%AF%E4%BF%A1%E6%95%B0%E6%8D%AE%E7%A9%BA%E9%97%B4%E4%B8%8E%E8%8D%AF%E4%BC%81RWD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可信数据空间与药企 RWD 数据库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集工作文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 总体说明
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 总体说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 节点角色
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 关键认知
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 软件版本清单（已核实）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-hadoop105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 系统环境准备（hadoop105）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 系统环境准备（hadoop105）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 hosts 与基础配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-jdk-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 安装 JDK 17
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-jdk-17-yarn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 分发 JDK 17 到集群节点（YARN 容器必须）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hadoop-hive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 下发 Hadoop / Hive 客户端配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 下发 Hadoop / Hive 客户端配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-hadoop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 拷贝 Hadoop 客户端（保证与集群版本一致）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 环境变量
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 验证集群连通性
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-spark-413-iceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 部署 Spark 4.1.3 + Iceberg
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 部署 Spark 4.1.3 + Iceberg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 安装 Spark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-spark-envsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 配置 spark-env.sh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-spark-defaultsconficeberg-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 配置 spark-defaults.conf（Iceberg Catalog 核心配置）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-flink-213-iceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 部署 Flink 2.1.3 + Iceberg
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 部署 Flink 2.1.3 + Iceberg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-flink" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 安装 Flink
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-jvm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 环境变量与 JVM 配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-flink-hive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 为 Flink 提供 Hive 客户端依赖
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-configyamlflink-2x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 配置 config.yaml（Flink 2.x 新配置格式）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-hive-hdfs-hadoop102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Hive / HDFS 侧准备（在 hadoop102 执行一次）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 部署验证
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 部署验证">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-spark-hadoop105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Spark 验证（hadoop105）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-flink-hadoop105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Flink 验证（hadoop105）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 跨引擎互通验证（核心价值）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-hive-hadoop102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Hive 侧确认（hadoop102）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 常见问题（FAQ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 下载地址汇总
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 后续可选增强
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="iceberg-1110-hadoop105">Iceberg 1.11.0 部署文档（hadoop105 客户端节点）</h1>
+<blockquote>
+<p>集群环境：CentOS 7 · Hadoop(HDFS+YARN) 3.1.3 · Hive 3.1.3 · Spark 4.1.3 · Flink 2.1.3 · Iceberg 1.11.0
+文档日期：2026-07 · 版本号与下载地址均经官方渠道核实</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 总体说明</h2>
+<h3 id="11">1.1 节点角色</h3>
+<table>
+<thead>
+<tr>
+<th>节点</th>
+<th>已有服务</th>
+<th>本次部署</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hadoop102</td>
+<td>HDFS(NameNode/DataNode)、YARN、Hive 3.1.3(Metastore)</td>
+<td>不动</td>
+</tr>
+<tr>
+<td>hadoop103</td>
+<td>HDFS、YARN</td>
+<td>不动</td>
+</tr>
+<tr>
+<td>hadoop104</td>
+<td>HDFS、YARN</td>
+<td>不动</td>
+</tr>
+<tr>
+<td>hadoop105</td>
+<td>无</td>
+<td>JDK 17、Hadoop/Hive 客户端配置、Spark 4.1.3、Flink 2.1.3、Iceberg 1.11.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12">1.2 关键认知</h3>
+<ul>
+<li><strong>Iceberg 不是独立服务</strong>，没有守护进程。"部署 Iceberg" = 把 Iceberg 的 runtime jar 放进 Spark/Flink 的类路径，并配置 Catalog。</li>
+<li>hadoop105 定位是<strong>客户端/网关节点</strong>：不跑 DataNode/NodeManager，只负责向 hadoop102~104 的集群提交作业。</li>
+<li>Iceberg 元数据存放在 hadoop102 的 <strong>Hive Metastore</strong>（HiveCatalog，<code>thrift://hadoop102:9083</code>），数据文件存放在集群 HDFS 上。Hive/Hadoop 均无需改动或重启。</li>
+</ul>
+<h3 id="13">1.3 软件版本清单（已核实）</h3>
+<table>
+<thead>
+<tr>
+<th>软件</th>
+<th>版本</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JDK</td>
+<td>17 (Temurin)</td>
+<td>Spark 4.1 强制 Java 17+；Flink 2.1 支持 11/17；Iceberg 1.11.0 已移除 Java 11</td>
+</tr>
+<tr>
+<td>Hadoop 客户端</td>
+<td>与集群一致（3.1.3）</td>
+<td>直接从 hadoop102 拷贝，保证版本匹配</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>4.1.3 (<code>spark-4.1.3-bin-hadoop3.tgz</code>)</td>
+<td>自带 Hive 2.3.10 客户端 jar，可直连 HMS 3.1.3</td>
+</tr>
+<tr>
+<td>Flink</td>
+<td>2.1.3 (<code>flink-2.1.3-bin-scala_2.12.tgz</code>)</td>
+<td>Scala 2.12（Iceberg flink-runtime 按 2.12 编译）</td>
+</tr>
+<tr>
+<td>Iceberg Spark runtime</td>
+<td><code>iceberg-spark-runtime-4.1_2.13-1.11.0.jar</code></td>
+<td>Spark 侧 Iceberg 全部能力</td>
+</tr>
+<tr>
+<td>Iceberg Flink runtime</td>
+<td><code>iceberg-flink-runtime-2.1-1.11.0.jar</code></td>
+<td>Flink 侧 Iceberg 全部能力</td>
+</tr>
+<tr>
+<td>Flink Hive 依赖</td>
+<td><code>flink-sql-connector-hive-3.1.3_2.12</code></td>
+<td>详见 5.3 节版本说明</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>兼容性依据：Iceberg 官方文档 "HiveCatalog integration supports Hive 2.3.10 or 3.1.3 or later"；Spark 4.1 文档 <code>spark.sql.hive.metastore.version</code> 支持 3.0.0–3.1.3；Flink 2.1 文档支持 Hive 3.1.0–3.1.3。</p>
+</blockquote>
+<hr />
+<h2 id="2-hadoop105">2. 系统环境准备（hadoop105）</h2>
+<h3 id="21-hosts">2.1 hosts 与基础配置</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 四台机器主机名写入 /etc/hosts（IP 按实际环境替换）</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/hosts<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="s">192.168.10.102 hadoop102</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="s">192.168.10.103 hadoop103</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="s">192.168.10.104 hadoop104</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="s">192.168.10.105 hadoop105</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="s">EOF</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 关闭防火墙（或按需放行 8020/9083/8088 等端口）</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>systemctl<span class="w"> </span>stop<span class="w"> </span>firewalld<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>systemctl<span class="w"> </span>disable<span class="w"> </span>firewalld
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 时间同步（与集群保持一致）</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>yum<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>ntpdate
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>ntpdate<span class="w"> </span>ntp.aliyun.com
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># 创建部署用户与目录（沿用集群风格 /opt/module，可自行调整）</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>useradd<span class="w"> </span>hadoop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'hadoop:123456'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>chpasswd
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/module<span class="w"> </span>/opt/software
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>chown<span class="w"> </span>-R<span class="w"> </span>hadoop:hadoop<span class="w"> </span>/opt/module<span class="w"> </span>/opt/software
+</code></pre></div>
+<p>后续操作除特别说明外，均以 <code>hadoop</code> 用户执行（<code>su - hadoop</code>）。</p>
+<h3 id="22-jdk-17">2.2 安装 JDK 17</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/software
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># 方式一：下载 Adoptium Temurin 17（推荐，版本固定）</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>wget<span class="w"> </span>-O<span class="w"> </span>OpenJDK17.tar.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">"https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>tar<span class="w"> </span>-zxvf<span class="w"> </span>OpenJDK17.tar.gz<span class="w"> </span>-C<span class="w"> </span>/opt/module/
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>mv<span class="w"> </span>/opt/module/jdk-17*<span class="w"> </span>/opt/module/jdk17
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># 方式二：若 yum 源提供 java-17-openjdk-devel，也可 yum 安装</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># yum install -y java-17-openjdk-devel</span>
+</code></pre></div>
+<p>配置环境变量 <code>/etc/profile.d/bigdata.sh</code>（全篇环境变量都放这里）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/etc/profile.d/bigdata.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="s"># JDK</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="s">export JAVA_HOME=/opt/module/jdk17</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="s">export PATH=$JAVA_HOME/bin:$PATH</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="s">EOF</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nb">source</span><span class="w"> </span>/etc/profile.d/bigdata.sh
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>java<span class="w"> </span>-version<span class="w">   </span><span class="c1"># 应显示 openjdk version "17.x.x"</span>
+</code></pre></div>
+<hr />
+<h3 id="23-jdk-17-yarn">2.3 分发 JDK 17 到集群节点（YARN 容器必须）</h3>
+<blockquote>
+<p><strong>为什么必须做这一步</strong>：Spark 4.1 的 class 文件版本是 61（Java 17 编译），而集群节点默认是 JDK 8（最高只认 52）。<code>--master yarn</code> 时，ApplicationMaster / Executor 容器跑在 hadoop102~104 上，默认用节点的 JDK 8 启动，必然报 <code>UnsupportedClassVersionError</code>。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 将 hadoop105 上装好的 JDK 17 按相同路径分发到所有集群节点</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">102</span><span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="m">104</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>scp<span class="w"> </span>-r<span class="w"> </span>/opt/module/jdk17<span class="w"> </span>hadoop<span class="nv">$i</span>:/opt/module/
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">done</span>
+</code></pre></div>
+<blockquote>
+<p>Hadoop/Hive 自身继续运行在原 JDK 8 上，<strong>不受影响</strong>——只有 Spark/Flink 的 YARN 容器会被显式指向 JDK 17（见 4.3、5.4 节配置）。</p>
+</blockquote>
+<h2 id="3-hadoop-hive">3. 下发 Hadoop / Hive 客户端配置</h2>
+<p>hadoop105 需要集群的配置文件与 Hadoop 客户端程序，用于访问 HDFS、向 YARN 提交作业。</p>
+<h3 id="31-hadoop">3.1 拷贝 Hadoop 客户端（保证与集群版本一致）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 从 hadoop102 直接拷贝集群在用的 Hadoop（路径按实际安装路径调整）</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>scp<span class="w"> </span>-r<span class="w"> </span>hadoop102:/opt/module/hadoop-3.1.3<span class="w"> </span>/opt/module/
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 从 hadoop102 拷贝 Hive 的配置文件（只需要配置，不需要整套 Hive）</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/module/hive-client-conf
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>scp<span class="w"> </span>hadoop102:/opt/module/hive/conf/hive-site.xml<span class="w"> </span>/opt/module/hive-client-conf/
+</code></pre></div>
+<blockquote>
+<p>若未配免密，先执行 <code>ssh-keygen</code> + <code>ssh-copy-id hadoop102</code>，或改用下载方式：
+<code>wget https://archive.apache.org/dist/hadoop/common/hadoop-3.1.3/hadoop-3.1.3.tar.gz</code></p>
+</blockquote>
+<h3 id="32">3.2 环境变量</h3>
+<p>向 <code>/etc/profile.d/bigdata.sh</code> 追加：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile.d/bigdata.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="s"># Hadoop 客户端</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s">export HADOOP_HOME=/opt/module/hadoop-3.1.3</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s">export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="s">export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="s">export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="s">export HIVE_CONF_DIR=/opt/module/hive-client-conf</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="s"># 供 Spark/Flink 使用的 Hadoop 类路径</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="s">export HADOOP_CLASSPATH=`$HADOOP_HOME/bin/hadoop classpath`</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="s">EOF</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="nb">source</span><span class="w"> </span>/etc/profile.d/bigdata.sh
+</code></pre></div>
+<h3 id="33">3.3 验证集群连通性</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>/<span class="w">          </span><span class="c1"># 能列出集群 HDFS 根目录</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>yarn<span class="w"> </span>node<span class="w"> </span>-list<span class="w">         </span><span class="c1"># 能列出 hadoop102~104 的 NodeManager</span>
+</code></pre></div>
+<hr />
+<h2 id="4-spark-413-iceberg">4. 部署 Spark 4.1.3 + Iceberg</h2>
+<h3 id="41-spark">4.1 安装 Spark</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/software
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>wget<span class="w"> </span>https://archive.apache.org/dist/spark/spark-4.1.3/spark-4.1.3-bin-hadoop3.tgz
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>tar<span class="w"> </span>-zxvf<span class="w"> </span>spark-4.1.3-bin-hadoop3.tgz<span class="w"> </span>-C<span class="w"> </span>/opt/module/
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>ln<span class="w"> </span>-s<span class="w"> </span>/opt/module/spark-4.1.3-bin-hadoop3<span class="w"> </span>/opt/module/spark
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># 下载 Iceberg Spark runtime（45.7 MB），放入 Spark jars 目录</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-4.1_2.13/1.11.0/iceberg-spark-runtime-4.1_2.13-1.11.0.jar<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span>-P<span class="w"> </span>/opt/module/spark/jars/
+</code></pre></div>
+<blockquote>
+<p>Spark 官方发行包自带 Hive 2.3.10 客户端 jar，Iceberg 的 HiveCatalog 直接复用它通过
+Thrift 连接 hadoop102 的 HMS 3.1.3，<strong>无需额外拷贝 Hive jar</strong>。</p>
+</blockquote>
+<p>追加环境变量：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile.d/bigdata.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="s"># Spark</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="s">export SPARK_HOME=/opt/module/spark</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="s">export PATH=$SPARK_HOME/bin:$PATH</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="s">EOF</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nb">source</span><span class="w"> </span>/etc/profile.d/bigdata.sh
+</code></pre></div>
+<h3 id="42-spark-envsh">4.2 配置 spark-env.sh</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/module/spark/conf
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>cp<span class="w"> </span>spark-env.sh.template<span class="w"> </span>spark-env.sh
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>spark-env.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="s">export JAVA_HOME=/opt/module/jdk17</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="s">export HADOOP_CONF_DIR=/opt/module/hadoop-3.1.3/etc/hadoop</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="s">export YARN_CONF_DIR=/opt/module/hadoop-3.1.3/etc/hadoop</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="s"># 若向 YARN 提交出现类冲突，取消下行注释，改用集群 Hadoop 客户端</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="s"># export SPARK_DIST_CLASSPATH=$(/opt/module/hadoop-3.1.3/bin/hadoop classpath)</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="43-spark-defaultsconficeberg-catalog">4.3 配置 spark-defaults.conf（Iceberg Catalog 核心配置）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/opt/module/spark/conf/spark-defaults.conf<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="s"># ---------- 集群提交 ----------</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="s">spark.master                              yarn</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="s">spark.submit.deployMode                   client</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="s">spark.eventLog.enabled                    true</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="s">spark.eventLog.dir                        hdfs://hadoop102:8020/spark-history</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="s">spark.yarn.historyServer.address          hadoop105:18080</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="s">spark.serializer                          org.apache.spark.serializer.KryoSerializer</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="s">spark.yarn.appMasterEnv.JAVA_HOME         /opt/module/jdk17</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="s">spark.executorEnv.JAVA_HOME               /opt/module/jdk17</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="s"># ---------- Iceberg SQL 扩展（CALL 存储过程等需要）----------</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="s">spark.sql.extensions                      org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="s"># ---------- Iceberg HiveCatalog，catalog 名字为 iceberg ----------</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="s">spark.sql.catalog.iceberg                 org.apache.iceberg.spark.SparkCatalog</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="s">spark.sql.catalog.iceberg.type            hive</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="s">spark.sql.catalog.iceberg.uri             thrift://hadoop102:9083</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="s">spark.sql.catalog.iceberg.warehouse       hdfs://hadoop102:8020/warehouse/iceberg</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="s">spark.sql.catalog.iceberg.default-namespace  default</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="s">spark.sql.catalog.iceberg.hadoop.fs.defaultFS  hdfs://hadoop102:8020</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="s">EOF</span>
+</code></pre></div>
+<blockquote>
+<p>说明：
+- <code>spark.eventLog.dir</code> 需先创建：<code>hdfs dfs -mkdir -p /spark-history</code>
+- <code>warehouse</code> 使用独立目录 <code>/warehouse/iceberg</code>，与 Hive 数仓目录隔离，便于管理</p>
+</blockquote>
+<hr />
+<h2 id="5-flink-213-iceberg">5. 部署 Flink 2.1.3 + Iceberg</h2>
+<h3 id="51-flink">5.1 安装 Flink</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/software
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>wget<span class="w"> </span>https://archive.apache.org/dist/flink/flink-2.1.3/flink-2.1.3-bin-scala_2.12.tgz
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>tar<span class="w"> </span>-zxvf<span class="w"> </span>flink-2.1.3-bin-scala_2.12.tgz<span class="w"> </span>-C<span class="w"> </span>/opt/module/
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>ln<span class="w"> </span>-s<span class="w"> </span>/opt/module/flink-2.1.3<span class="w"> </span>/opt/module/flink
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># 下载 Iceberg Flink runtime（37.3 MB），放入 Flink lib 目录</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-2.1/1.11.0/iceberg-flink-runtime-2.1-1.11.0.jar<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span>-P<span class="w"> </span>/opt/module/flink/lib/
+</code></pre></div>
+<h3 id="52-jvm">5.2 环境变量与 JVM 配置</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile.d/bigdata.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="s"># Flink</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s">export FLINK_HOME=/opt/module/flink</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s">export PATH=$FLINK_HOME/bin:$PATH</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s">EOF</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nb">source</span><span class="w"> </span>/etc/profile.d/bigdata.sh
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="c1"># flink-env.sh</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>/opt/module/flink/conf/flink-env.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="s">export JAVA_HOME=/opt/module/jdk17</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="s">export HADOOP_CLASSPATH=`/opt/module/hadoop-3.1.3/bin/hadoop classpath`</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="s">export HADOOP_CONF_DIR=/opt/module/hadoop-3.1.3/etc/hadoop</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="53-flink-hive">5.3 为 Flink 提供 Hive 客户端依赖</h3>
+<blockquote>
+<p>已实测验证：Iceberg 的 runtime jar 内只含 <code>org.apache.iceberg.hive.*</code>（HiveCatalog 实现），
+<strong>不含</strong> Hive Metastore 客户端类（<code>org.apache.hadoop.hive.metastore.*</code>），需另行提供。</p>
+</blockquote>
+<p><strong>方案 A（推荐，官方方式）</strong>：把 Flink 的 Hive SQL connector 放进 <code>lib/</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/3.0.0-1.20/flink-sql-connector-hive-3.1.3_2.12-3.0.0-1.20.jar<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>-P<span class="w"> </span>/opt/module/flink/lib/
+</code></pre></div>
+<blockquote>
+<p>⚠️ 版本现状（已核实 Maven Central，2026-07）：Flink 2.1 官方文档引用的
+<code>flink-sql-connector-hive-3.1.3_2.12:2.1.1</code> <strong>尚未发布到 Maven 仓库</strong>，当前最新可用为
+<code>3.0.0-1.20</code>（Hive 连接器已独立发版，面向 Flink 1.20 构建）。该 uber jar 自带 Hive 3.1.3
+全套类，Iceberg 的 HiveCatalog 只借用其中的 HMS 客户端类即可工作；若你的 SQL 作业
+还需要使用 Flink 自身的 HiveCatalog / Hive 方言并出现异常，改用方案 B。</p>
+</blockquote>
+<p><strong>方案 B（备选，最贴近集群）</strong>：从 hadoop102 拷贝 Hive 3.1.3 客户端 jar：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>scp<span class="w"> </span>hadoop102:/opt/module/hive/lib/<span class="o">{</span>hive-metastore-3.1.3.jar,hive-exec-3.1.3.jar,hive-common-3.1.3.jar,libfb303-0.9.3.jar,libthrift-0.9.3.jar<span class="o">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>/opt/module/flink/lib/
+</code></pre></div>
+<p>方案 A、B 二选一，<strong>不要同时放</strong>，避免类冲突。</p>
+<h3 id="54-configyamlflink-2x">5.4 配置 config.yaml（Flink 2.x 新配置格式）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>/opt/module/flink/conf/config.yaml<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="s">jobmanager:</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="s">  memory:</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="s">    process:</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="s">      size: 2048m</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="s">taskmanager:</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="s">  memory:</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="s">    process:</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="s">      size: 4096m</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="s">  numberOfTaskSlots: 4</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="s">parallelism:</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="s">  default: 2</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="s">execution:</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="s">  checkpointing:</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="s">    interval: 60s</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="s">rest:</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="s">  bind-address: hadoop105</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="s">env:</span>
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="s">  java:</span>
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="s">    home: /opt/module/jdk17</span>
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="s">EOF</span>
+</code></pre></div>
+<hr />
+<h2 id="6-hive-hdfs-hadoop102">6. Hive / HDFS 侧准备（在 hadoop102 执行一次）</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># 1. 确认 Hive Metastore 已启动并监听 9083</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>nohup<span class="w"> </span>hive<span class="w"> </span>--service<span class="w"> </span>metastore<span class="w"> </span>&gt;<span class="w"> </span>/opt/module/hive/logs/metastore.log<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>netstat<span class="w"> </span>-ntlp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">9083</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="c1"># 2. 创建 Iceberg 独立仓库目录并授权（测试环境直接 777，生产按用户细粒度授权）</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-mkdir<span class="w"> </span>-p<span class="w"> </span>/warehouse/iceberg
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span>-R<span class="w"> </span><span class="m">777</span><span class="w"> </span>/warehouse/iceberg
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="c1"># 3. 创建 Spark 历史日志目录</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-mkdir<span class="w"> </span>-p<span class="w"> </span>/spark-history
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span><span class="m">777</span><span class="w"> </span>/spark-history
+</code></pre></div>
+<blockquote>
+<p>说明：Iceberg 的 HiveCatalog 只是在 HMS 里注册表元数据（<code>table_type=ICEBERG</code>），
+<strong>不需要 Hive 服务端做任何改造</strong>，Hive 3.1.3 原生满足 Iceberg 1.11.0 的要求。</p>
+</blockquote>
+<hr />
+<h2 id="7">7. 部署验证</h2>
+<h3 id="71-spark-hadoop105">7.1 Spark 验证（hadoop105）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>spark-sql<span class="w"> </span>--master<span class="w"> </span>yarn
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">-- 建库建表（V2 格式，兼容性最好）</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">;</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">sample</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="n">id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">STRING</span><span class="p">,</span><span class="w"> </span><span class="n">ts</span><span class="w"> </span><span class="k">TIMESTAMP</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="p">)</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="n">TBLPROPERTIES</span><span class="w"> </span><span class="p">(</span><span class="s1">'format-version'</span><span class="o">=</span><span class="s1">'2'</span><span class="p">);</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1">-- 写入 + 查询</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">sample</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">'alice'</span><span class="p">,</span><span class="k">current_timestamp</span><span class="p">()),(</span><span class="mi">2</span><span class="p">,</span><span class="s1">'bob'</span><span class="p">,</span><span class="k">current_timestamp</span><span class="p">());</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">sample</span><span class="p">;</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="c1">-- 查看快照与数据文件（Iceberg 元数据表）</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">sample</span><span class="p">.</span><span class="n">snapshots</span><span class="p">;</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="n">record_count</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">sample</span><span class="p">.</span><span class="n">files</span><span class="p">;</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="c1">-- 时间旅行（snapshot_id 取自上一步查询结果）</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">sample</span><span class="w"> </span><span class="k">VERSION</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">OF</span><span class="w"> </span><span class="o">&lt;</span><span class="n">snapshot_id</span><span class="o">&gt;</span><span class="p">;</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="c1">-- 调用维护存储过程（小文件合并）</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="k">CALL</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="k">system</span><span class="p">.</span><span class="n">rewrite_data_files</span><span class="p">(</span><span class="s1">'iceberg_db.sample'</span><span class="p">);</span>
+</code></pre></div>
+<p>同时验证 HDFS 上生成了标准 Iceberg 目录结构：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>/warehouse/iceberg/iceberg_db/sample/
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># 应看到 data/ 与 metadata/ 两个目录，metadata 下有 v1.metadata.json、snap-*.avro 等</span>
+</code></pre></div>
+<h3 id="72-flink-hadoop105">7.2 Flink 验证（hadoop105）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># 启动 SQL Client（embedded 模式，本地验证用）</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>sql-client.sh
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">CATALOG</span><span class="w"> </span><span class="n">iceberg_hive</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="s1">'type'</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s1">'iceberg'</span><span class="p">,</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span><span class="s1">'catalog-type'</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s1">'hive'</span><span class="p">,</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span><span class="s1">'uri'</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s1">'thrift://hadoop102:9083'</span><span class="p">,</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">  </span><span class="s1">'clients'</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="s1">'5'</span><span class="p">,</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">  </span><span class="s1">'property-version'</span><span class="o">=</span><span class="w"> </span><span class="s1">'1'</span><span class="p">,</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="w">  </span><span class="s1">'warehouse'</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s1">'hdfs://hadoop102:8020/warehouse/iceberg'</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="p">);</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="n">USE</span><span class="w"> </span><span class="k">CATALOG</span><span class="w"> </span><span class="n">iceberg_hive</span><span class="p">;</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">flink_db</span><span class="p">;</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">flink_db</span><span class="p">.</span><span class="n">flink_sample</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">,</span><span class="w"> </span><span class="k">data</span><span class="w"> </span><span class="n">STRING</span><span class="p">);</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">flink_db</span><span class="p">.</span><span class="n">flink_sample</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s1">'a'</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="s1">'b'</span><span class="p">);</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">flink_db</span><span class="p">.</span><span class="n">flink_sample</span><span class="p">;</span>
+</code></pre></div>
+<p>生产使用建议改为 YARN 会话模式：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>yarn-session.sh<span class="w"> </span>-d<span class="w"> </span>-jm<span class="w"> </span>1024m<span class="w"> </span>-tm<span class="w"> </span>2048m
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>sql-client.sh<span class="w">   </span><span class="c1"># 作业提交到 YARN 会话集群</span>
+</code></pre></div>
+<h3 id="73">7.3 跨引擎互通验证（核心价值）</h3>
+<ul>
+<li><strong>Flink 写、Spark 读</strong>：在 spark-sql 中执行 <code>SELECT * FROM iceberg.flink_db.flink_sample;</code></li>
+<li><strong>Spark 写、Flink 读</strong>：在 flink sql-client 中执行 <code>SELECT * FROM iceberg_db.sample;</code></li>
+</ul>
+<p>两侧都能看到对方写入的数据，说明共享 HMS 元数据 + HDFS 数据的链路完全打通。</p>
+<h3 id="74-hive-hadoop102">7.4 Hive 侧确认（hadoop102）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>beeline<span class="w"> </span>-u<span class="w"> </span>jdbc:hive2://hadoop102:10000<span class="w"> </span>-e<span class="w"> </span><span class="s2">"SHOW TABLES IN default;"</span>
+</code></pre></div>
+<p>能列出 Iceberg 表名即正常。<strong>直接 SELECT 会报错属正常现象</strong>——Hive 3.1.3 没有
+Iceberg StorageHandler（该集成包自 Iceberg 1.8.0 起停止发布，Hive 4.0 才内置）。
+Iceberg 表由 Spark/Flink 读写，Hive 仅承担元数据仓库角色。</p>
+<hr />
+<h2 id="8-faq">8. 常见问题（FAQ）</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因与处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ClassNotFoundException: HiveMetaStoreClient</code>（Spark）</td>
+<td>使用了不带 Hive 的 Spark 包；务必使用官方 <code>bin-hadoop3</code> 发行包（自带 Hive 2.3.10 客户端）</td>
+</tr>
+<tr>
+<td><code>ClassNotFoundException: HiveMetaStoreClient</code>（Flink）</td>
+<td>未按 5.3 节放置 Hive 依赖 jar</td>
+</tr>
+<tr>
+<td>连接 9083 超时</td>
+<td>hadoop102 的 metastore 未启动或防火墙未放行；<code>netstat -ntlp \| grep 9083</code> 确认</td>
+</tr>
+<tr>
+<td>HDFS Permission denied</td>
+<td><code>/warehouse/iceberg</code> 未授权；按第 6 节授权，或给提交用户单独赋权</td>
+</tr>
+<tr>
+<td>YARN 提交类冲突</td>
+<td>spark-env.sh 启用 <code>SPARK_DIST_CLASSPATH=$(hadoop classpath)</code>；Flink 确认 <code>HADOOP_CLASSPATH</code> 已导出</td>
+</tr>
+<tr>
+<td>Flink Hive 方言/HiveCatalog 报错</td>
+<td><code>3.0.0-1.20</code> 连接器面向 Flink 1.20 构建，个别 Flink 侧 Hive 功能可能不兼容；Iceberg 功能不受影响，必要时切换方案 B</td>
+</tr>
+<tr>
+<td>Java 17 反射告警</td>
+<td>Flink 2.1 默认已带所需 <code>--add-opens</code>；自定义 JVM 参数时保留原有 add-opens 列表</td>
+</tr>
+<tr>
+<td>CentOS 7 兼容性</td>
+<td>glibc 2.17 较老：Netty 自动回退 NIO（无害）；Flink 2.x 默认 Forst 状态后端若遇 native 库问题，可先切 Heap 状态后端验证；另 CentOS 7 已 EOL，建议中期升级 OS</td>
+</tr>
+<tr>
+<td>Hive 里查 Iceberg 表报错</td>
+<td>正常现象，见 7.4 节；不要在 Hive 侧对该表执行 DML</td>
+</tr>
+<tr>
+<td><code>UnsupportedClassVersionError</code>（61.0/52.0）</td>
+<td>YARN 容器用了节点的 JDK 8 加载 Java 17 编译的 Spark 类；按 2.3 节给集群节点分发 JDK 17，并确认 spark-defaults.conf 已配 <code>spark.yarn.appMasterEnv.JAVA_HOME</code> 与 <code>spark.executorEnv.JAVA_HOME</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9">9. 下载地址汇总</h2>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spark 4.1.3</td>
+<td>https://archive.apache.org/dist/spark/spark-4.1.3/spark-4.1.3-bin-hadoop3.tgz</td>
+</tr>
+<tr>
+<td>Flink 2.1.3</td>
+<td>https://archive.apache.org/dist/flink/flink-2.1.3/flink-2.1.3-bin-scala_2.12.tgz</td>
+</tr>
+<tr>
+<td>Iceberg Spark runtime 1.11.0</td>
+<td>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-4.1_2.13/1.11.0/iceberg-spark-runtime-4.1_2.13-1.11.0.jar</td>
+</tr>
+<tr>
+<td>Iceberg Flink runtime 1.11.0</td>
+<td>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-2.1/1.11.0/iceberg-flink-runtime-2.1-1.11.0.jar</td>
+</tr>
+<tr>
+<td>Flink Hive SQL connector</td>
+<td>https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/3.0.0-1.20/flink-sql-connector-hive-3.1.3_2.12-3.0.0-1.20.jar</td>
+</tr>
+<tr>
+<td>Temurin JDK 17</td>
+<td>https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10">10. 后续可选增强</h2>
+<ul>
+<li><strong>V3 格式体验</strong>：建表时 <code>TBLPROPERTIES ('format-version'='3')</code>，获得 Deletion Vector、行血缘（Row Lineage）、并发提交重试等新能力（1.11.0 已完整支持）</li>
+<li><strong>REST Catalog</strong>：后续引入更多引擎或需要统一权限管控时，可部署 Iceberg REST Catalog 服务替代直连 HMS</li>
+<li><strong>Spark History Server</strong>：<code>$SPARK_HOME/sbin/start-history-server.sh</code>，通过 http://hadoop105:18080 查看作业历史</li>
+<li><strong>Flink 生产模式</strong>：建议 <code>yarn-application</code> 模式提交，并开启 checkpoint 到 HDFS</li>
+</ul>
+<hr />
+<blockquote>
+<p>参考来源：<a href="https://iceberg.apache.org/releases/">Iceberg Releases</a> · <a href="https://iceberg.apache.org/docs/latest/flink/">Iceberg Flink 集成文档</a> · <a href="https://spark.apache.org/docs/latest/sql-data-sources-hive-tables.html">Spark Hive Tables 文档</a> · <a href="https://nightlies.apache.org/flink/flink-docs-release-2.1/docs/connectors/table/hive/overview/">Flink Hive 连接器文档</a> · Maven Central 构件记录（均于 2026-07 核实）</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

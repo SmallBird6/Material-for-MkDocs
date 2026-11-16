@@ -1,0 +1,3351 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人技术架构与笔记">
+      
+      
+      
+      
+        <link rel="prev" href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v2/">
+      
+      
+        <link rel="next" href="../Polaris-Iceberg%E6%B9%96%E4%BB%93%E9%83%A8%E7%BD%B2/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Iceberg + MinIO + Apache Polaris 部署方案（v4） - 我的知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#iceberg-minio-apache-polaris-v4" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="我的知识库" class="md-header__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            我的知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Iceberg + MinIO + Apache Polaris 部署方案（v4）
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至暗色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至暗色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="我的知识库" class="md-nav__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    我的知识库
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    数据湖
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Apache-Polaris%E4%BB%8B%E7%BB%8D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Apache Polaris 介绍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%93%8D%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive 迁移 Iceberg 方案
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11.0-%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11%E9%83%A8%E7%BD%B2%E7%AC%94%E8%AE%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11 部署笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v2）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v4）
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v4）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、架构总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、环境信息
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="二、环境信息">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MinIO 连接信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#postgresql-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、PostgreSQL 部署（Docker）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、PostgreSQL 部署（Docker）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 目录准备
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 初始化 SQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-docker-composeyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 docker-compose.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 启动与验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 连接信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jdk-21-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、JDK 21 安装（Polaris 专用，不配置环境变量）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="四、JDK 21 安装（Polaris 专用，不配置环境变量）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 下载并解压到 Polaris 专属目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 验证（使用绝对路径）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-java" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 确认系统 Java 未受影响
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apache-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、Apache Polaris 部署（手动）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、Apache Polaris 部署（手动）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 上传并解压二进制包
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 实际目录结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 创建配置与运维目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 配置文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 启动脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 停止脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-systemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Systemd 服务（推荐生产使用）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 首次启动
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-bootstrap-realm-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 Bootstrap（初始化 Realm 和 Root 凭证）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#510-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.10 验证 Polaris 运行状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#catalog-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、Catalog 初始化（创建 Catalog / 权限 / 引擎凭证）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、Catalog 初始化（创建 Catalog / 权限 / 引擎凭证）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Bootstrap 脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 执行
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spark-412" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        七、Spark 4.1.2 配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="七、Spark 4.1.2 配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-jar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 依赖 JAR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-spark-defaultsconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 spark-defaults.conf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flink-213" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        八、Flink 2.1.3 配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="八、Flink 2.1.3 配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-jar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 依赖 JAR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-flink-sql-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Flink SQL Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pyiceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        九、PyIceberg 配置（可选）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十、验证清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十一、运维管理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="十一、运维管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        日常操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        监控
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        安全加固
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十二、MinIO 注意事项
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十三、故障排查
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录 A：完整目录结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录 B：端口清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录 C：部署顺序速查
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Polaris-Iceberg%E6%B9%96%E4%BB%93%E9%83%A8%E7%BD%B2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Polaris + Iceberg 湖仓部署
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94-2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2026 年开放表格式(Open Table Format)全景与详细对比
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%8E%9F%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式原理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式技术选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%95%B0%E6%8D%AE%E6%B9%96%E7%AE%80%E4%BB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖简介
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%80%BB%E7%BB%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体总结
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E6%94%B9%E9%80%A0%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从离线数仓到湖仓一体：架构改造方案说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体架构选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E7%A6%BB%E7%BA%BF%E6%95%B0%E4%BB%93%E5%90%91%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%94%B9%E9%80%A0%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    离线数仓向湖仓一体架构改造说明文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    高质量数据集
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%B8%B4%E5%BA%8A%E5%8C%BB%E5%AD%A6%E7%A0%94%E7%A9%B6%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E8%A7%84%E8%8C%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    临床医学研究质量管理规范
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    什么是高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E6%95%B0%E6%8D%AE%E4%BA%A7%E5%93%81%E4%BA%A7%E4%B8%9A%E4%BF%A1%E5%8F%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗数据产品产业信号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%A7%A3%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗高质量数据集解析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8F%AF%E4%BF%A1%E6%95%B0%E6%8D%AE%E7%A9%BA%E9%97%B4%E4%B8%8E%E8%8D%AF%E4%BC%81RWD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可信数据空间与药企 RWD 数据库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集工作文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、架构总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、环境信息
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="二、环境信息">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MinIO 连接信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#postgresql-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、PostgreSQL 部署（Docker）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、PostgreSQL 部署（Docker）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 目录准备
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 初始化 SQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-docker-composeyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 docker-compose.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 启动与验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 连接信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jdk-21-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、JDK 21 安装（Polaris 专用，不配置环境变量）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="四、JDK 21 安装（Polaris 专用，不配置环境变量）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 下载并解压到 Polaris 专属目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 验证（使用绝对路径）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-java" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 确认系统 Java 未受影响
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apache-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、Apache Polaris 部署（手动）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、Apache Polaris 部署（手动）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 上传并解压二进制包
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 实际目录结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 创建配置与运维目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 配置文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 启动脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 停止脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-systemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Systemd 服务（推荐生产使用）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 首次启动
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-bootstrap-realm-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 Bootstrap（初始化 Realm 和 Root 凭证）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#510-polaris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.10 验证 Polaris 运行状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#catalog-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、Catalog 初始化（创建 Catalog / 权限 / 引擎凭证）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、Catalog 初始化（创建 Catalog / 权限 / 引擎凭证）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Bootstrap 脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 执行
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spark-412" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        七、Spark 4.1.2 配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="七、Spark 4.1.2 配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-jar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 依赖 JAR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-spark-defaultsconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 spark-defaults.conf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flink-213" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        八、Flink 2.1.3 配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="八、Flink 2.1.3 配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-jar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 依赖 JAR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-flink-sql-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Flink SQL Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pyiceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        九、PyIceberg 配置（可选）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十、验证清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十一、运维管理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="十一、运维管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        日常操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        监控
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        安全加固
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十二、MinIO 注意事项
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        十三、故障排查
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录 A：完整目录结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录 B：端口清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录 C：部署顺序速查
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="iceberg-minio-apache-polaris-v4">Iceberg + MinIO + Apache Polaris 部署方案（v4）</h1>
+<blockquote>
+<p><strong>版本</strong>：v4.0
+<strong>日期</strong>：2026-07-25
+<strong>部署机器</strong>：172.16.15.15（Polaris / PostgreSQL / Spark / Flink）
+<strong>存储</strong>：MinIO 172.16.15.28:9000（Bucket 已创建）</p>
+</blockquote>
+<hr />
+<h2 id="_1">一、架构总览</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Node15["172.16.15.15"]
+        Spark["Spark 4.1.2"]
+        Flink["Flink 2.1.3"]
+        Other["PyIceberg / Trino / ..."]
+        Polaris["Apache Polaris 1.6.0（手动部署，API :8181 / Health :8182）"]
+        PG["PostgreSQL 16（Docker，:5432）"]
+        Spark --&gt;|"Iceberg REST API (HTTP)"| Polaris
+        Flink --&gt;|"Iceberg REST API (HTTP)"| Polaris
+        Other --&gt;|"Iceberg REST API (HTTP)"| Polaris
+        Polaris --&gt;|"JDBC"| PG
+    end
+    MinIO["MinIO 172.16.15.28（API :9000 / Console :9001 / Bucket: iceberg-warehouse）"]
+    Polaris --&gt;|"S3 API"| MinIO</code></pre>
+<hr />
+<h2 id="_2">二、环境信息</h2>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>版本</th>
+<th>部署方式</th>
+<th>地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Apache Polaris</td>
+<td>1.6.0</td>
+<td>二进制包手动部署</td>
+<td>172.16.15.15:8181</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>16-alpine</td>
+<td>Docker</td>
+<td>172.16.15.15:5432</td>
+</tr>
+<tr>
+<td>MinIO</td>
+<td>已部署</td>
+<td>—</td>
+<td>172.16.15.28:9000</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>4.1.2</td>
+<td>已有</td>
+<td>172.16.15.15</td>
+</tr>
+<tr>
+<td>Flink</td>
+<td>2.1.3</td>
+<td>已有</td>
+<td>172.16.15.15</td>
+</tr>
+<tr>
+<td>Iceberg</td>
+<td>1.11.0</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>JDK</td>
+<td>21 LTS</td>
+<td>Polaris 专用（不配置环境变量）</td>
+<td>172.16.15.15</td>
+</tr>
+</tbody>
+</table>
+<h3 id="minio">MinIO 连接信息</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Endpoint</td>
+<td><code>http://172.16.15.28:9000</code></td>
+</tr>
+<tr>
+<td>Console</td>
+<td><code>http://172.16.15.28:9001</code></td>
+</tr>
+<tr>
+<td>Access Key</td>
+<td><code>admin</code></td>
+</tr>
+<tr>
+<td>Secret Key</td>
+<td><code>!Qivie20130113</code></td>
+</tr>
+<tr>
+<td>Bucket</td>
+<td><code>iceberg-warehouse</code>（已手动创建）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="postgresql-docker">三、PostgreSQL 部署（Docker）</h2>
+<h3 id="31">3.1 目录准备</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/polaris/postgresql/<span class="o">{</span>data,init<span class="o">}</span>
+</code></pre></div>
+<h3 id="32-sql">3.2 初始化 SQL</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/opt/polaris/postgresql/init/01-init.sql<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="s">CREATE DATABASE polaris;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s">CREATE USER polaris WITH PASSWORD 'PolarisPG@2026!Secure';</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="s">GRANT ALL PRIVILEGES ON DATABASE polaris TO polaris;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="s">\c polaris</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="s">GRANT ALL ON SCHEMA public TO polaris;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="s">ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO polaris;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="s">ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO polaris;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="33-docker-composeyml">3.3 docker-compose.yml</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/opt/polaris/postgresql/docker-compose.yml<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="s">version: "3.9"</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="s">services:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="s">  polaris-postgres:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="s">    image: postgres:16-alpine</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="s">    container_name: polaris-postgres</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="s">    restart: always</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="s">    environment:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="s">      POSTGRES_USER: postgres</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="s">      POSTGRES_PASSWORD: PostgresRoot@2026!</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="s">    ports:</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="s">      - "5432:5432"</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="s">    volumes:</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="s">      - .//postgresql/data</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="s">      - ./init:/docker-entrypoint-initdb.d:ro</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="s">    healthcheck:</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="s">      test: ["CMD-SHELL", "pg_isready -U postgres"]</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="s">      interval: 5s</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="s">      timeout: 3s</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="s">      retries: 10</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="s">    deploy:</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="s">      resources:</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="s">        limits:</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="s">          cpus: "2.0"</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="s">          memory: 2G</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="s">    logging:</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="s">      driver: json-file</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="s">      options:</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="s">        max-size: "50m"</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="s">        max-file: "3"</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="34">3.4 启动与验证</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/polaris/postgresql
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 验证</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>polaris-postgres<span class="w"> </span>pg_isready<span class="w"> </span>-U<span class="w"> </span>postgres
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># 预期: /var/run/postgresql:5432 - accepting connections</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>polaris-postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-c<span class="w"> </span><span class="s2">"\l"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>polaris
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>polaris-postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-c<span class="w"> </span><span class="s2">"SELECT usename FROM pg_user WHERE usename='polaris';"</span>
+</code></pre></div>
+<h3 id="35">3.5 连接信息</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JDBC URL</td>
+<td><code>jdbc:postgresql://172.16.15.15:5432/polaris</code></td>
+</tr>
+<tr>
+<td>User</td>
+<td><code>polaris</code></td>
+</tr>
+<tr>
+<td>Password</td>
+<td><code>PolarisPG@2026!Secure</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="jdk-21-polaris">四、JDK 21 安装（Polaris 专用，不配置环境变量）</h2>
+<blockquote>
+<p>⚠️ <strong>重要</strong>：JDK 21 仅供 Polaris 使用，<strong>不写入系统 <code>JAVA_HOME</code>、不修改 <code>PATH</code></strong>。
+Spark / Flink 继续使用系统原有的 Java 版本，互不影响。</p>
+</blockquote>
+<h3 id="41-polaris">4.1 下载并解压到 Polaris 专属目录</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/polaris/jdk
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd</span><span class="w"> </span>/opt/polaris/jdk
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>wget<span class="w"> </span>https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>openjdk-21.0.2_linux-x64_bin.tar.gz
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>rm<span class="w"> </span>-f<span class="w"> </span>openjdk-21.0.2_linux-x64_bin.tar.gz
+</code></pre></div>
+<p>解压后路径为：<code>/opt/polaris/jdk/jdk-21.0.2</code></p>
+<h3 id="42">4.2 验证（使用绝对路径）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>/opt/polaris/jdk/jdk-21.0.2/bin/java<span class="w"> </span>-version
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># 预期: openjdk version "21.0.2" 2024-01-16</span>
+</code></pre></div>
+<h3 id="43-java">4.3 确认系统 Java 未受影响</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># 系统默认 Java 不变（Spark/Flink 使用）</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>java<span class="w"> </span>-version
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># 预期: 你原来的版本（如 17.x 或 11.x）</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nb">echo</span><span class="w"> </span><span class="nv">$JAVA_HOME</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># 预期: 你原来的值（或空）</span>
+</code></pre></div>
+<blockquote>
+<p>后续所有 Polaris 相关脚本中，Java 均通过绝对路径
+<code>/opt/polaris/jdk/jdk-21.0.2/bin/java</code> 调用，不依赖任何环境变量。</p>
+</blockquote>
+<hr />
+<h2 id="apache-polaris">五、Apache Polaris 部署（手动）</h2>
+<h3 id="51">5.1 上传并解压二进制包</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/polaris/server
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">cd</span><span class="w"> </span>/opt/polaris/server
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># 上传 polaris-bin-1.6.0.tgz 到此目录后解压</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>polaris-bin-1.6.0.tgz
+</code></pre></div>
+<h3 id="52">5.2 实际目录结构</h3>
+<p>解压后 <code>/opt/polaris/server/polaris-bin-1.6.0/</code> 的结构如下：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>polaris-bin-1.6.0/
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├── LICENSE
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├── NOTICE
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├── README.md
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>│
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├── bin/                          ← 启动脚本
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>│   ├── server                    ← Polaris Server 启动脚本
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>│   └── admin                     ← Polaris Admin Tool 启动脚本
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>│
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>├── server/                       ← Polaris Server（主服务）
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>│   ├── quarkus-run.jar           ← 主入口 JAR
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>│   ├── app/
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>│   │   └── polaris-server-1.6.0.jar
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>│   ├── lib/
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>│   │   ├── boot/
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>│   │   │   └── io.quarkus.quarkus-bootstrap-runner-3.36.3.jar
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>│   │   └── main/
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>│   │       └── (依赖 JAR 包)
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>│   └── quarkus/
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>│       ├── generated-bytecode.jar
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>│       ├── quarkus-application.dat
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>│       └── transformed-bytecode.jar
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>│
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>└── admin/                        ← Polaris Admin Tool（管理工具）
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    ├── quarkus-run.jar           ← Admin 入口 JAR
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>    ├── app/
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>    │   └── polaris-admin-1.6.0.jar
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>    ├── lib/
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>    │   ├── boot/
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>    │   │   └── io.quarkus.quarkus-bootstrap-runner-3.36.3.jar
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>    │   └── main/
+<a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a>    │       └── (依赖 JAR 包)
+<a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a>    └── quarkus/
+<a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a>        ├── generated-bytecode.jar
+<a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a>        ├── quarkus-application.dat
+<a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a>        └── transformed-bytecode.jar
+</code></pre></div>
+<h3 id="53">5.3 创建配置与运维目录</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/polaris/<span class="o">{</span>config,logs,scripts,backup<span class="o">}</span>
+</code></pre></div>
+<p>最终完整目录规划：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>/opt/polaris/
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>├── jdk/
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>│   └── jdk-21.0.2/              # JDK 21（Polaris 专用）
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>├── server/
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>│   └── polaris-bin-1.6.0/       # Polaris 二进制（解压后）
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>│       ├── bin/
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>│       ├── server/
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>│       └── admin/
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>├── postgresql/                   # PostgreSQL Docker（第三章）
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>│   ├── docker-compose.yml
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>│   ├── data/
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>│   └── init/
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>├── config/                       # Polaris 自定义配置
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>│   └── application.properties
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>├── logs/                         # 日志
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>├── scripts/                      # 运维脚本
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>│   ├── start-polaris.sh
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>│   ├── stop-polaris.sh
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>│   └── bootstrap-catalog.sh
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>├── backup/                       # 备份
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>└── polaris.pid                   # PID 文件
+</code></pre></div>
+<h3 id="54">5.4 配置文件</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/data/polaris-1.6.0/config/application.properties<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="s"># ============================================================</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="s"># Apache Polaris 1.6.0 配置</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="s"># 部署: 172.16.15.15</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="s"># ============================================================</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="s"># ---------- 端口 ----------</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="s">quarkus.http.port=8181</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="s">quarkus.management.port=8182</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="s"># ---------- 持久化: PostgreSQL ----------</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="s">polaris.persistence.type=relational-jdbc</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="s">quarkus.datasource.jdbc.url=jdbc:postgresql://172.16.15.15:5432/polaris</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="s">quarkus.datasource.username=polaris</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="s">quarkus.datasource.password=PolarisPG@2026!Secure</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="s">quarkus.datasource.jdbc.max-size=20</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="s">quarkus.datasource.jdbc.min-size=5</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="s"># ---------- Realm ----------</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="s">polaris.realm-context.realms=POLARIS</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="s">polaris.realm-context.header-name=Polaris-Realm</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>
+<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="s"># ---------- 认证: 内置 OAuth2 ----------</span>
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="s">polaris.authentication.mode=internal</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>
+<a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="s"># ---------- Feature Flags ----------</span>
+<a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="s"># MinIO 必须: 允许非 AWS S3 兼容存储</span>
+<a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="s">polaris.features.ALLOW_INSECURE_STORAGE_TYPES=true</span>
+<a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="s">polaris.features.ALLOW_EXTERNAL_CATALOG_CREDENTIAL_VENDING=true</span>
+<a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a><span class="s">polaris.features.ALLOW_OVERLAPPING_CATALOG_URLS=true</span>
+<a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="s"># ---------- CORS ----------</span>
+<a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="s">quarkus.http.cors=true</span>
+<a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a><span class="s">quarkus.http.cors.origins=/.*/</span>
+<a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a><span class="s">quarkus.http.cors.methods=GET,POST,PUT,DELETE,OPTIONS</span>
+<a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a><span class="s">quarkus.http.cors.headers=Authorization,Content-Type,Polaris-Realm,X-Iceberg-Access-Delegation</span>
+<a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a>
+<a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="s"># ---------- 日志 ----------</span>
+<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="s">quarkus.log.level=INFO</span>
+<a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a><span class="s">quarkus.log.category."org.apache.polaris".level=INFO</span>
+<a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a><span class="s">quarkus.log.file.enable=true</span>
+<a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a><span class="s">quarkus.log.file.path=/opt/polaris/logs/polaris.log</span>
+<a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a><span class="s">quarkus.log.file.rotation.max-file-size=100M</span>
+<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="s">quarkus.log.file.rotation.max-backup-index=10</span>
+<a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a>
+<a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a><span class="s"># ---------- 事件监听器线程池 (1.6.0 新增) ----------</span>
+<a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a><span class="s">polaris.event-listener.executor.pool-size=4</span>
+<a id="__codelineno-11-48" name="__codelineno-11-48" href="#__codelineno-11-48"></a><span class="s">polaris.event-listener.executor.queue-size=100</span>
+<a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="55">5.5 启动脚本</h3>
+<blockquote>
+<p>使用 JDK 21 绝对路径，不依赖系统 <code>JAVA_HOME</code> 或 <code>PATH</code>。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/data/polaris-1.6.0/scripts/start-polaris.sh<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="s">#!/bin/bash</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s"># ============================================================</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s"># Apache Polaris 启动脚本</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s"># JDK 21 通过绝对路径指定，不影响系统环境变量</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="s"># ============================================================</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="s"># JDK 21 绝对路径（Polaris 专用）</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="s">JAVA=/opt/polaris/jdk/jdk-21.0.2/bin/java</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="s"># Polaris 路径</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="s">POLARIS_HOME=/opt/polaris/server/polaris-bin-1.6.0</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="s">POLARIS_CONFIG=/opt/polaris/config/application.properties</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="s">POLARIS_LOG=/opt/polaris/logs</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="s"># JVM 参数</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="s">JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="s">echo "Starting Apache Polaris 1.6.0 ..."</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="s">echo "  Java:    $JAVA"</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="s">echo "  Config:  $POLARIS_CONFIG"</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="s">echo "  Log:     $POLARIS_LOG/polaris.log"</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="s"># 检查 Java 版本</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="s">$JAVA -version 2&gt;&amp;1 | head -1</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="s">cd $POLARIS_HOME/server</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="s">nohup $JAVA $JAVA_OPTS \</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="s">  -Dquarkus.config.locations=$POLARIS_CONFIG \</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="s">  -jar quarkus-run.jar \</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="s">  &gt; $POLARIS_LOG/polaris-stdout.log 2&gt;&amp;1 &amp;</span>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a>
+<a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="s">echo $! &gt; /opt/polaris/polaris.pid</span>
+<a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="s">echo "PID: $(cat /opt/polaris/polaris.pid)"</span>
+<a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a>
+<a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="s"># 等待启动（最多 60 秒）</span>
+<a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a><span class="s">for i in $(seq 1 30); do</span>
+<a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a><span class="s">  if curl -sf http://localhost:8182/q/health &gt; /dev/null 2&gt;&amp;1; then</span>
+<a id="__codelineno-12-40" name="__codelineno-12-40" href="#__codelineno-12-40"></a><span class="s">    echo "✓ Polaris is UP → http://172.16.15.15:8181"</span>
+<a id="__codelineno-12-41" name="__codelineno-12-41" href="#__codelineno-12-41"></a><span class="s">    exit 0</span>
+<a id="__codelineno-12-42" name="__codelineno-12-42" href="#__codelineno-12-42"></a><span class="s">  fi</span>
+<a id="__codelineno-12-43" name="__codelineno-12-43" href="#__codelineno-12-43"></a><span class="s">  sleep 2</span>
+<a id="__codelineno-12-44" name="__codelineno-12-44" href="#__codelineno-12-44"></a><span class="s">done</span>
+<a id="__codelineno-12-45" name="__codelineno-12-45" href="#__codelineno-12-45"></a>
+<a id="__codelineno-12-46" name="__codelineno-12-46" href="#__codelineno-12-46"></a><span class="s">echo "✗ 启动超时，请检查日志:"</span>
+<a id="__codelineno-12-47" name="__codelineno-12-47" href="#__codelineno-12-47"></a><span class="s">echo "  tail -f $POLARIS_LOG/polaris.log"</span>
+<a id="__codelineno-12-48" name="__codelineno-12-48" href="#__codelineno-12-48"></a><span class="s">echo "  tail -f $POLARIS_LOG/polaris-stdout.log"</span>
+<a id="__codelineno-12-49" name="__codelineno-12-49" href="#__codelineno-12-49"></a><span class="s">exit 1</span>
+<a id="__codelineno-12-50" name="__codelineno-12-50" href="#__codelineno-12-50"></a><span class="s">EOF</span>
+<a id="__codelineno-12-51" name="__codelineno-12-51" href="#__codelineno-12-51"></a>chmod<span class="w"> </span>+x<span class="w"> </span>/data/polaris-1.6.0/scripts/start-polaris.sh
+</code></pre></div>
+<h3 id="56">5.6 停止脚本</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/data/polaris-1.6.0/scripts/stop-polaris.sh<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="s">#!/bin/bash</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="s">PID_FILE=/opt/polaris/polaris.pid</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="s">if [ -f "$PID_FILE" ]; then</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="s">  PID=$(cat $PID_FILE)</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="s">  if kill -0 $PID 2&gt;/dev/null; then</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="s">    echo "Stopping Polaris (PID: $PID)..."</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="s">    kill $PID</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="s">    for i in $(seq 1 15); do</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="s">      if ! kill -0 $PID 2&gt;/dev/null; then</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="s">        echo "✓ Polaris stopped."</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="s">        rm -f $PID_FILE</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="s">        exit 0</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="s">      fi</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="s">      sleep 1</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="s">    done</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="s">    kill -9 $PID</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="s">    rm -f $PID_FILE</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="s">    echo "✓ Polaris force killed."</span>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="s">  else</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="s">    echo "Process $PID not running."</span>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="s">    rm -f $PID_FILE</span>
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="s">  fi</span>
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="s">else</span>
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="s">  echo "PID file not found. Polaris may not be running."</span>
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="s">fi</span>
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="s">EOF</span>
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>chmod<span class="w"> </span>+x<span class="w"> </span>/data/polaris-1.6.0/scripts/stop-polaris.sh
+</code></pre></div>
+<h3 id="57-systemd">5.7 Systemd 服务（推荐生产使用）</h3>
+<blockquote>
+<p>同样使用 JDK 21 绝对路径，不设置 <code>Environment="JAVA_HOME=..."</code>。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/etc/systemd/system/polaris.service<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="s">[Unit]</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="s">Description=Apache Polaris - Iceberg REST Catalog</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="s">After=network.target docker.service</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="s">Wants=network-online.target</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="s">[Service]</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="s">Type=simple</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="s">User=root</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="s">WorkingDirectory=/opt/polaris/server/polaris-bin-1.6.0/server</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="s">ExecStart=/opt/polaris/jdk/jdk-21.0.2/bin/java \</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="s">  -Xms512m -Xmx2g -XX:+UseG1GC \</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="s">  -Dquarkus.config.locations=/opt/polaris/config/application.properties \</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="s">  -jar quarkus-run.jar</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="s">Restart=on-failure</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="s">RestartSec=10</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="s">StandardOutput=append:/opt/polaris/logs/polaris-stdout.log</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="s">StandardError=append:/opt/polaris/logs/polaris-stderr.log</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="s">[Install]</span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="s">WantedBy=multi-user.target</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="s">EOF</span>
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>systemctl<span class="w"> </span>daemon-reload
+<a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>polaris
+</code></pre></div>
+<h3 id="58">5.8 首次启动</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># 方式一：启动脚本</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>/opt/polaris/scripts/start-polaris.sh
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># 方式二：systemd</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>systemctl<span class="w"> </span>start<span class="w"> </span>polaris
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>systemctl<span class="w"> </span>status<span class="w"> </span>polaris
+</code></pre></div>
+<h3 id="59-bootstrap-realm-root">5.9 Bootstrap（初始化 Realm 和 Root 凭证）</h3>
+<p>使用 <code>admin/quarkus-run.jar</code> 执行初始化：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>/opt/polaris/jdk/jdk-21.0.2/bin/java<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span>-Dquarkus.config.locations<span class="o">=</span>/opt/polaris/config/application.properties<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span>-jar<span class="w"> </span>/opt/polaris/server/polaris-bin-1.6.0/admin/quarkus-run.jar<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span>bootstrap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">  </span>--realm<span class="w"> </span>POLARIS<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">  </span>--root-credentials<span class="w"> </span><span class="s2">"root:PolarisRoot@2026!Change"</span>
+</code></pre></div>
+<p>预期输出：
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Bootstrap completed successfully for realm: POLARIS
+</code></pre></div></p>
+<h3 id="510-polaris">5.10 验证 Polaris 运行状态</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># 健康检查</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>curl<span class="w"> </span>http://172.16.15.15:8182/q/health
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="c1"># 预期: {"status":"UP","checks":[...]}</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># REST API 配置端点</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>curl<span class="w"> </span>http://172.16.15.15:8181/api/catalog/v1/config
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># 预期: 返回 JSON</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># 获取 OAuth2 Token</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://172.16.15.15:8181/api/catalog/v1/oauth/tokens<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"grant_type=client_credentials"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"client_id=root"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"client_secret=PolarisRoot@2026!Change"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"scope=PRINCIPAL_ROLE:ALL"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Polaris-Realm: POLARIS"</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="c1"># 预期: {"access_token":"eyJ...","token_type":"bearer",...}</span>
+</code></pre></div>
+<hr />
+<h2 id="catalog-catalog">六、Catalog 初始化（创建 Catalog / 权限 / 引擎凭证）</h2>
+<h3 id="61-bootstrap">6.1 Bootstrap 脚本</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>/opt/polaris/scripts/bootstrap-catalog.sh<span class="w"> </span><span class="s">&lt;&lt; 'SCRIPT'</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="s">#!/bin/bash</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="s">set -e</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="s">POLARIS_API="http://172.16.15.15:8181/api/catalog/v1"</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="s">POLARIS_MGMT="http://172.16.15.15:8181/api/management/v1"</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="s">REALM="Polaris-Realm: POLARIS"</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="s">ROOT_ID="root"</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="s">ROOT_SECRET="PolarisRoot@2026!Change"</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="s">MINIO_ENDPOINT="http://172.16.15.28:9000"</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="s">MINIO_BUCKET="iceberg-warehouse"</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="s">echo "=========================================="</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="s">echo " Polaris Catalog Bootstrap"</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="s">echo " MinIO: ${MINIO_ENDPOINT}"</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="s">echo " Bucket: ${MINIO_BUCKET}"</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="s">echo "=========================================="</span>
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>
+<a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="s"># ---- 1. 获取 Root Token ----</span>
+<a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="s">echo "[1/6] 获取 Root Token..."</span>
+<a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="s">TOKEN_RESP=$(curl -s -X POST "${POLARIS_API}/oauth/tokens" \</span>
+<a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a><span class="s">  -d "grant_type=client_credentials" \</span>
+<a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a><span class="s">  -d "client_id=${ROOT_ID}" \</span>
+<a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a><span class="s">  -d "client_secret=${ROOT_SECRET}" \</span>
+<a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="s">  -d "scope=PRINCIPAL_ROLE:ALL" \</span>
+<a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="s">  -H "${REALM}")</span>
+<a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>
+<a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a><span class="s">TOKEN=$(echo "$TOKEN_RESP" | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])" 2&gt;/dev/null)</span>
+<a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a><span class="s">if [ -z "$TOKEN" ]; then</span>
+<a id="__codelineno-19-33" name="__codelineno-19-33" href="#__codelineno-19-33"></a><span class="s">  echo "ERROR: 获取 Token 失败"</span>
+<a id="__codelineno-19-34" name="__codelineno-19-34" href="#__codelineno-19-34"></a><span class="s">  echo "Response: $TOKEN_RESP"</span>
+<a id="__codelineno-19-35" name="__codelineno-19-35" href="#__codelineno-19-35"></a><span class="s">  exit 1</span>
+<a id="__codelineno-19-36" name="__codelineno-19-36" href="#__codelineno-19-36"></a><span class="s">fi</span>
+<a id="__codelineno-19-37" name="__codelineno-19-37" href="#__codelineno-19-37"></a><span class="s">AUTH="Authorization: Bearer ${TOKEN}"</span>
+<a id="__codelineno-19-38" name="__codelineno-19-38" href="#__codelineno-19-38"></a><span class="s">echo "  ✓ OK"</span>
+<a id="__codelineno-19-39" name="__codelineno-19-39" href="#__codelineno-19-39"></a>
+<a id="__codelineno-19-40" name="__codelineno-19-40" href="#__codelineno-19-40"></a><span class="s"># ---- 2. 创建 Catalog（指向 MinIO） ----</span>
+<a id="__codelineno-19-41" name="__codelineno-19-41" href="#__codelineno-19-41"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-42" name="__codelineno-19-42" href="#__codelineno-19-42"></a><span class="s">echo "[2/6] 创建 Catalog 'iceberg_minio'..."</span>
+<a id="__codelineno-19-43" name="__codelineno-19-43" href="#__codelineno-19-43"></a><span class="s">curl -s -X POST "${POLARIS_MGMT}/catalogs" \</span>
+<a id="__codelineno-19-44" name="__codelineno-19-44" href="#__codelineno-19-44"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-45" name="__codelineno-19-45" href="#__codelineno-19-45"></a><span class="s">  -d '{</span>
+<a id="__codelineno-19-46" name="__codelineno-19-46" href="#__codelineno-19-46"></a><span class="s">    "catalog": {</span>
+<a id="__codelineno-19-47" name="__codelineno-19-47" href="#__codelineno-19-47"></a><span class="s">      "name": "iceberg_minio",</span>
+<a id="__codelineno-19-48" name="__codelineno-19-48" href="#__codelineno-19-48"></a><span class="s">      "type": "INTERNAL",</span>
+<a id="__codelineno-19-49" name="__codelineno-19-49" href="#__codelineno-19-49"></a><span class="s">      "readOnly": false,</span>
+<a id="__codelineno-19-50" name="__codelineno-19-50" href="#__codelineno-19-50"></a><span class="s">      "properties": {</span>
+<a id="__codelineno-19-51" name="__codelineno-19-51" href="#__codelineno-19-51"></a><span class="s">        "default-base-location": "s3://'"${MINIO_BUCKET}"'/warehouse"</span>
+<a id="__codelineno-19-52" name="__codelineno-19-52" href="#__codelineno-19-52"></a><span class="s">      },</span>
+<a id="__codelineno-19-53" name="__codelineno-19-53" href="#__codelineno-19-53"></a><span class="s">      "storageConfigInfo": {</span>
+<a id="__codelineno-19-54" name="__codelineno-19-54" href="#__codelineno-19-54"></a><span class="s">        "storageType": "S3",</span>
+<a id="__codelineno-19-55" name="__codelineno-19-55" href="#__codelineno-19-55"></a><span class="s">        "allowedLocations": ["s3://'"${MINIO_BUCKET}"'/"],</span>
+<a id="__codelineno-19-56" name="__codelineno-19-56" href="#__codelineno-19-56"></a><span class="s">        "endpoint": "'"${MINIO_ENDPOINT}"'",</span>
+<a id="__codelineno-19-57" name="__codelineno-19-57" href="#__codelineno-19-57"></a><span class="s">        "region": "us-east-1",</span>
+<a id="__codelineno-19-58" name="__codelineno-19-58" href="#__codelineno-19-58"></a><span class="s">        "pathStyleAccess": true,</span>
+<a id="__codelineno-19-59" name="__codelineno-19-59" href="#__codelineno-19-59"></a><span class="s">        "stsEnabled": false</span>
+<a id="__codelineno-19-60" name="__codelineno-19-60" href="#__codelineno-19-60"></a><span class="s">      }</span>
+<a id="__codelineno-19-61" name="__codelineno-19-61" href="#__codelineno-19-61"></a><span class="s">    }</span>
+<a id="__codelineno-19-62" name="__codelineno-19-62" href="#__codelineno-19-62"></a><span class="s">  }' &gt; /dev/null</span>
+<a id="__codelineno-19-63" name="__codelineno-19-63" href="#__codelineno-19-63"></a><span class="s">echo "  ✓ OK"</span>
+<a id="__codelineno-19-64" name="__codelineno-19-64" href="#__codelineno-19-64"></a>
+<a id="__codelineno-19-65" name="__codelineno-19-65" href="#__codelineno-19-65"></a><span class="s"># ---- 3. 创建 Principal（引擎服务账号） ----</span>
+<a id="__codelineno-19-66" name="__codelineno-19-66" href="#__codelineno-19-66"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-67" name="__codelineno-19-67" href="#__codelineno-19-67"></a><span class="s">echo "[3/6] 创建 Principal 'engine_svc'..."</span>
+<a id="__codelineno-19-68" name="__codelineno-19-68" href="#__codelineno-19-68"></a><span class="s">PRIN_RESP=$(curl -s -X POST "${POLARIS_MGMT}/principals" \</span>
+<a id="__codelineno-19-69" name="__codelineno-19-69" href="#__codelineno-19-69"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-70" name="__codelineno-19-70" href="#__codelineno-19-70"></a><span class="s">  -d '{"principal":{"name":"engine_svc","type":"SERVICE","properties":{}}}')</span>
+<a id="__codelineno-19-71" name="__codelineno-19-71" href="#__codelineno-19-71"></a>
+<a id="__codelineno-19-72" name="__codelineno-19-72" href="#__codelineno-19-72"></a><span class="s">CLIENT_ID=$(echo "$PRIN_RESP" | python3 -c "import sys,json;print(json.load(sys.stdin)['credentials']['clientId'])" 2&gt;/dev/null)</span>
+<a id="__codelineno-19-73" name="__codelineno-19-73" href="#__codelineno-19-73"></a><span class="s">CLIENT_SECRET=$(echo "$PRIN_RESP" | python3 -c "import sys,json;print(json.load(sys.stdin)['credentials']['clientSecret'])" 2&gt;/dev/null)</span>
+<a id="__codelineno-19-74" name="__codelineno-19-74" href="#__codelineno-19-74"></a>
+<a id="__codelineno-19-75" name="__codelineno-19-75" href="#__codelineno-19-75"></a><span class="s">if [ -z "$CLIENT_ID" ]; then</span>
+<a id="__codelineno-19-76" name="__codelineno-19-76" href="#__codelineno-19-76"></a><span class="s">  echo "ERROR: 创建 Principal 失败"</span>
+<a id="__codelineno-19-77" name="__codelineno-19-77" href="#__codelineno-19-77"></a><span class="s">  echo "Response: $PRIN_RESP"</span>
+<a id="__codelineno-19-78" name="__codelineno-19-78" href="#__codelineno-19-78"></a><span class="s">  exit 1</span>
+<a id="__codelineno-19-79" name="__codelineno-19-79" href="#__codelineno-19-79"></a><span class="s">fi</span>
+<a id="__codelineno-19-80" name="__codelineno-19-80" href="#__codelineno-19-80"></a><span class="s">echo "  ✓ Client ID:     ${CLIENT_ID}"</span>
+<a id="__codelineno-19-81" name="__codelineno-19-81" href="#__codelineno-19-81"></a><span class="s">echo "    Client Secret: ${CLIENT_SECRET}"</span>
+<a id="__codelineno-19-82" name="__codelineno-19-82" href="#__codelineno-19-82"></a>
+<a id="__codelineno-19-83" name="__codelineno-19-83" href="#__codelineno-19-83"></a><span class="s"># ---- 4. 创建 Principal Role 并绑定 ----</span>
+<a id="__codelineno-19-84" name="__codelineno-19-84" href="#__codelineno-19-84"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-85" name="__codelineno-19-85" href="#__codelineno-19-85"></a><span class="s">echo "[4/6] 创建 Principal Role 'engine_role'..."</span>
+<a id="__codelineno-19-86" name="__codelineno-19-86" href="#__codelineno-19-86"></a><span class="s">curl -s -X POST "${POLARIS_MGMT}/principal-roles" \</span>
+<a id="__codelineno-19-87" name="__codelineno-19-87" href="#__codelineno-19-87"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-88" name="__codelineno-19-88" href="#__codelineno-19-88"></a><span class="s">  -d '{"principalRole":{"name":"engine_role"}}' &gt; /dev/null</span>
+<a id="__codelineno-19-89" name="__codelineno-19-89" href="#__codelineno-19-89"></a>
+<a id="__codelineno-19-90" name="__codelineno-19-90" href="#__codelineno-19-90"></a><span class="s">curl -s -X PUT "${POLARIS_MGMT}/principals/engine_svc/principal-roles" \</span>
+<a id="__codelineno-19-91" name="__codelineno-19-91" href="#__codelineno-19-91"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-92" name="__codelineno-19-92" href="#__codelineno-19-92"></a><span class="s">  -d '{"principalRole":{"name":"engine_role"}}' &gt; /dev/null</span>
+<a id="__codelineno-19-93" name="__codelineno-19-93" href="#__codelineno-19-93"></a><span class="s">echo "  ✓ OK"</span>
+<a id="__codelineno-19-94" name="__codelineno-19-94" href="#__codelineno-19-94"></a>
+<a id="__codelineno-19-95" name="__codelineno-19-95" href="#__codelineno-19-95"></a><span class="s"># ---- 5. 创建 Catalog Role 并绑定 ----</span>
+<a id="__codelineno-19-96" name="__codelineno-19-96" href="#__codelineno-19-96"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-97" name="__codelineno-19-97" href="#__codelineno-19-97"></a><span class="s">echo "[5/6] 创建 Catalog Role 'admin_role'..."</span>
+<a id="__codelineno-19-98" name="__codelineno-19-98" href="#__codelineno-19-98"></a><span class="s">curl -s -X POST "${POLARIS_MGMT}/catalogs/iceberg_minio/catalog-roles" \</span>
+<a id="__codelineno-19-99" name="__codelineno-19-99" href="#__codelineno-19-99"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-100" name="__codelineno-19-100" href="#__codelineno-19-100"></a><span class="s">  -d '{"catalogRole":{"name":"admin_role"}}' &gt; /dev/null</span>
+<a id="__codelineno-19-101" name="__codelineno-19-101" href="#__codelineno-19-101"></a>
+<a id="__codelineno-19-102" name="__codelineno-19-102" href="#__codelineno-19-102"></a><span class="s">curl -s -X PUT "${POLARIS_MGMT}/principal-roles/engine_role/catalog-roles/iceberg_minio" \</span>
+<a id="__codelineno-19-103" name="__codelineno-19-103" href="#__codelineno-19-103"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-104" name="__codelineno-19-104" href="#__codelineno-19-104"></a><span class="s">  -d '{"catalogRole":{"name":"admin_role"}}' &gt; /dev/null</span>
+<a id="__codelineno-19-105" name="__codelineno-19-105" href="#__codelineno-19-105"></a><span class="s">echo "  ✓ OK"</span>
+<a id="__codelineno-19-106" name="__codelineno-19-106" href="#__codelineno-19-106"></a>
+<a id="__codelineno-19-107" name="__codelineno-19-107" href="#__codelineno-19-107"></a><span class="s"># ---- 6. 授权 ----</span>
+<a id="__codelineno-19-108" name="__codelineno-19-108" href="#__codelineno-19-108"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-109" name="__codelineno-19-109" href="#__codelineno-19-109"></a><span class="s">echo "[6/6] 授予 CATALOG_MANAGE_CONTENT..."</span>
+<a id="__codelineno-19-110" name="__codelineno-19-110" href="#__codelineno-19-110"></a><span class="s">curl -s -X PUT "${POLARIS_MGMT}/catalogs/iceberg_minio/catalog-roles/admin_role/grants" \</span>
+<a id="__codelineno-19-111" name="__codelineno-19-111" href="#__codelineno-19-111"></a><span class="s">  -H "$AUTH" -H "Content-Type: application/json" -H "${REALM}" \</span>
+<a id="__codelineno-19-112" name="__codelineno-19-112" href="#__codelineno-19-112"></a><span class="s">  -d '{"grant":{"type":"catalog","privilege":"CATALOG_MANAGE_CONTENT"}}' &gt; /dev/null</span>
+<a id="__codelineno-19-113" name="__codelineno-19-113" href="#__codelineno-19-113"></a><span class="s">echo "  ✓ OK"</span>
+<a id="__codelineno-19-114" name="__codelineno-19-114" href="#__codelineno-19-114"></a>
+<a id="__codelineno-19-115" name="__codelineno-19-115" href="#__codelineno-19-115"></a><span class="s"># ---- 输出结果 ----</span>
+<a id="__codelineno-19-116" name="__codelineno-19-116" href="#__codelineno-19-116"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-117" name="__codelineno-19-117" href="#__codelineno-19-117"></a><span class="s">echo "=========================================="</span>
+<a id="__codelineno-19-118" name="__codelineno-19-118" href="#__codelineno-19-118"></a><span class="s">echo " ✓ Bootstrap 完成"</span>
+<a id="__codelineno-19-119" name="__codelineno-19-119" href="#__codelineno-19-119"></a><span class="s">echo "=========================================="</span>
+<a id="__codelineno-19-120" name="__codelineno-19-120" href="#__codelineno-19-120"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-121" name="__codelineno-19-121" href="#__codelineno-19-121"></a><span class="s">echo " REST API:   http://172.16.15.15:8181/api/catalog"</span>
+<a id="__codelineno-19-122" name="__codelineno-19-122" href="#__codelineno-19-122"></a><span class="s">echo " Catalog:    iceberg_minio"</span>
+<a id="__codelineno-19-123" name="__codelineno-19-123" href="#__codelineno-19-123"></a><span class="s">echo " Warehouse:  s3://${MINIO_BUCKET}/warehouse"</span>
+<a id="__codelineno-19-124" name="__codelineno-19-124" href="#__codelineno-19-124"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-125" name="__codelineno-19-125" href="#__codelineno-19-125"></a><span class="s">echo " ┌───────────────────────────────────────────────────┐"</span>
+<a id="__codelineno-19-126" name="__codelineno-19-126" href="#__codelineno-19-126"></a><span class="s">echo " │  引擎凭证（请保存！Spark / Flink 配置需要）         │"</span>
+<a id="__codelineno-19-127" name="__codelineno-19-127" href="#__codelineno-19-127"></a><span class="s">echo " │                                                   │"</span>
+<a id="__codelineno-19-128" name="__codelineno-19-128" href="#__codelineno-19-128"></a><span class="s">echo " │  Client ID:     ${CLIENT_ID}"</span>
+<a id="__codelineno-19-129" name="__codelineno-19-129" href="#__codelineno-19-129"></a><span class="s">echo " │  Client Secret: ${CLIENT_SECRET}"</span>
+<a id="__codelineno-19-130" name="__codelineno-19-130" href="#__codelineno-19-130"></a><span class="s">echo " └───────────────────────────────────────────────────┘"</span>
+<a id="__codelineno-19-131" name="__codelineno-19-131" href="#__codelineno-19-131"></a>
+<a id="__codelineno-19-132" name="__codelineno-19-132" href="#__codelineno-19-132"></a><span class="s"># 保存凭证到文件</span>
+<a id="__codelineno-19-133" name="__codelineno-19-133" href="#__codelineno-19-133"></a><span class="s">cat &gt; /opt/polaris/config/engine-credentials.env &lt;&lt; CREDS</span>
+<a id="__codelineno-19-134" name="__codelineno-19-134" href="#__codelineno-19-134"></a><span class="s"># Polaris Engine Credentials</span>
+<a id="__codelineno-19-135" name="__codelineno-19-135" href="#__codelineno-19-135"></a><span class="s"># Generated: $(date '+%Y-%m-%d %H:%M:%S')</span>
+<a id="__codelineno-19-136" name="__codelineno-19-136" href="#__codelineno-19-136"></a><span class="s">POLARIS_CLIENT_ID=${CLIENT_ID}</span>
+<a id="__codelineno-19-137" name="__codelineno-19-137" href="#__codelineno-19-137"></a><span class="s">POLARIS_CLIENT_SECRET=${CLIENT_SECRET}</span>
+<a id="__codelineno-19-138" name="__codelineno-19-138" href="#__codelineno-19-138"></a><span class="s">CREDS</span>
+<a id="__codelineno-19-139" name="__codelineno-19-139" href="#__codelineno-19-139"></a><span class="s">chmod 600 /opt/polaris/config/engine-credentials.env</span>
+<a id="__codelineno-19-140" name="__codelineno-19-140" href="#__codelineno-19-140"></a><span class="s">echo ""</span>
+<a id="__codelineno-19-141" name="__codelineno-19-141" href="#__codelineno-19-141"></a><span class="s">echo " 凭证已保存: /opt/polaris/config/engine-credentials.env"</span>
+<a id="__codelineno-19-142" name="__codelineno-19-142" href="#__codelineno-19-142"></a><span class="s">SCRIPT</span>
+<a id="__codelineno-19-143" name="__codelineno-19-143" href="#__codelineno-19-143"></a>
+<a id="__codelineno-19-144" name="__codelineno-19-144" href="#__codelineno-19-144"></a>chmod<span class="w"> </span>+x<span class="w"> </span>/opt/polaris/scripts/bootstrap-catalog.sh
+</code></pre></div>
+<h3 id="62">6.2 执行</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>/opt/polaris/scripts/bootstrap-catalog.sh
+</code></pre></div>
+<blockquote>
+<p>⚠️ <strong>执行后务必记录输出的 Client ID 和 Client Secret</strong>，后续 Spark / Flink 配置需要。</p>
+</blockquote>
+<hr />
+<h2 id="spark-412">七、Spark 4.1.2 配置</h2>
+<blockquote>
+<p>Spark 部署在 172.16.15.15，与 Polaris 同机。</p>
+</blockquote>
+<h3 id="71-jar">7.1 依赖 JAR</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nb">cd</span><span class="w"> </span><span class="nv">$SPARK_HOME</span>/jars/
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="c1"># Iceberg Spark Runtime (Spark 4.x → iceberg-spark-runtime-4.0)</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-4.0_2.13/1.11.0/iceberg-spark-runtime-4.0_2.13-1.11.0.jar
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="c1"># Iceberg AWS Bundle (S3FileIO)</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.11.0/iceberg-aws-bundle-1.11.0.jar
+</code></pre></div>
+<h3 id="72-spark-defaultsconf">7.2 spark-defaults.conf</h3>
+<p>编辑 <code>$SPARK_HOME/conf/spark-defaults.conf</code>，追加：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># ===== Iceberg + Polaris REST Catalog =====</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="na">spark.sql.catalog.polaris</span><span class="o">=</span><span class="s">org.apache.iceberg.spark.SparkCatalog</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="na">spark.sql.catalog.polaris.type</span><span class="o">=</span><span class="s">rest</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="na">spark.sql.catalog.polaris.uri</span><span class="o">=</span><span class="s">http://172.16.15.15:8181/api/catalog</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="na">spark.sql.catalog.polaris.warehouse</span><span class="o">=</span><span class="s">iceberg_minio</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="na">spark.sql.catalog.polaris.header.Polaris-Realm</span><span class="o">=</span><span class="s">POLARIS</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="c1"># OAuth2 认证（替换为 bootstrap 输出的实际值）</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="na">spark.sql.catalog.polaris.credential</span><span class="o">=</span><span class="s">&lt;CLIENT_ID&gt;:&lt;CLIENT_SECRET&gt;</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="na">spark.sql.catalog.polaris.scope</span><span class="o">=</span><span class="s">PRINCIPAL_ROLE:ALL</span>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="na">spark.sql.catalog.polaris.rest.auth.type</span><span class="o">=</span><span class="s">oauth2</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="na">spark.sql.catalog.polaris.oauth2-server-uri</span><span class="o">=</span><span class="s">http://172.16.15.15:8181/api/catalog/v1/oauth/tokens</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="c1"># MinIO S3 配置</span>
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="na">spark.sql.catalog.polaris.io-impl</span><span class="o">=</span><span class="s">org.apache.iceberg.aws.s3.S3FileIO</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="na">spark.sql.catalog.polaris.s3.endpoint</span><span class="o">=</span><span class="s">http://172.16.15.28:9000</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="na">spark.sql.catalog.polaris.s3.path-style-access</span><span class="o">=</span><span class="s">true</span>
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a><span class="na">spark.sql.catalog.polaris.s3.access-key-id</span><span class="o">=</span><span class="s">admin</span>
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a><span class="na">spark.sql.catalog.polaris.s3.secret-access-key</span><span class="o">=</span><span class="s">!Qivie20130113</span>
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>
+<a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a><span class="c1"># Iceberg 扩展</span>
+<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="na">spark.sql.extensions</span><span class="o">=</span><span class="s">org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions</span>
+<a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a><span class="na">spark.sql.defaultCatalog</span><span class="o">=</span><span class="s">polaris</span>
+</code></pre></div>
+<h3 id="73">7.3 验证</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nv">$SPARK_HOME</span>/bin/spark-sql<span class="w"> </span>--catalog<span class="w"> </span>polaris
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="n">NAMESPACE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="n">lakehouse</span><span class="p">;</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="n">lakehouse</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">    </span><span class="n">order_id</span><span class="w">    </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">    </span><span class="n">customer_id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="n">amount</span><span class="w">      </span><span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">    </span><span class="n">order_time</span><span class="w">  </span><span class="k">TIMESTAMP</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="p">)</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="n">PARTITIONED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="p">(</span><span class="n">days</span><span class="p">(</span><span class="n">order_time</span><span class="p">));</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="n">lakehouse</span><span class="p">.</span><span class="n">orders</span><span class="w"> </span><span class="k">VALUES</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1001</span><span class="p">,</span><span class="w"> </span><span class="mi">99</span><span class="p">.</span><span class="mi">99</span><span class="p">,</span><span class="w"> </span><span class="k">current_timestamp</span><span class="p">()),</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1002</span><span class="p">,</span><span class="w"> </span><span class="mi">199</span><span class="p">.</span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="k">current_timestamp</span><span class="p">());</span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="n">lakehouse</span><span class="p">.</span><span class="n">orders</span><span class="p">;</span>
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a><span class="c1">-- 确认 location 指向 MinIO</span>
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a><span class="k">DESCRIBE</span><span class="w"> </span><span class="n">EXTENDED</span><span class="w"> </span><span class="n">polaris</span><span class="p">.</span><span class="n">lakehouse</span><span class="p">.</span><span class="n">orders</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="flink-213">八、Flink 2.1.3 配置</h2>
+<blockquote>
+<p>Flink 部署在 172.16.15.15，与 Polaris 同机。</p>
+</blockquote>
+<h3 id="81-jar">8.1 依赖 JAR</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nb">cd</span><span class="w"> </span><span class="nv">$FLINK_HOME</span>/lib/
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1"># Iceberg Flink Runtime</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-2.1_2.12/1.11.0/iceberg-flink-runtime-2.1_2.12-1.11.0.jar
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="c1"># Iceberg AWS Bundle (S3FileIO)</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>wget<span class="w"> </span>https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.11.0/iceberg-aws-bundle-1.11.0.jar
+</code></pre></div>
+<h3 id="82-flink-sql-client">8.2 Flink SQL Client</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nv">$FLINK_HOME</span>/bin/sql-client.sh
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1">-- 注册 Polaris Catalog</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">CATALOG</span><span class="w"> </span><span class="n">polaris_flink</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span><span class="s1">'type'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'iceberg'</span><span class="p">,</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span><span class="s1">'catalog-type'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'rest'</span><span class="p">,</span>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">  </span><span class="s1">'uri'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'http://172.16.15.15:8181/api/catalog'</span><span class="p">,</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="w">  </span><span class="s1">'warehouse'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'iceberg_minio'</span><span class="p">,</span>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="w">  </span><span class="s1">'credential'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'&lt;CLIENT_ID&gt;:&lt;CLIENT_SECRET&gt;'</span><span class="p">,</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="w">  </span><span class="s1">'scope'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'PRINCIPAL_ROLE:ALL'</span><span class="p">,</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="w">  </span><span class="s1">'header.Polaris-Realm'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'POLARIS'</span><span class="p">,</span>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">  </span><span class="s1">'rest.auth.type'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'oauth2'</span><span class="p">,</span>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="w">  </span><span class="s1">'oauth2-server-uri'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'http://172.16.15.15:8181/api/catalog/v1/oauth/tokens'</span><span class="p">,</span>
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a><span class="w">  </span><span class="s1">'io-impl'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'org.apache.iceberg.aws.s3.S3FileIO'</span><span class="p">,</span>
+<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a><span class="w">  </span><span class="s1">'s3.endpoint'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'http://172.16.15.28:9000'</span><span class="p">,</span>
+<a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a><span class="w">  </span><span class="s1">'s3.path-style-access'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'true'</span><span class="p">,</span>
+<a id="__codelineno-27-15" name="__codelineno-27-15" href="#__codelineno-27-15"></a><span class="w">  </span><span class="s1">'s3.access-key-id'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'admin'</span><span class="p">,</span>
+<a id="__codelineno-27-16" name="__codelineno-27-16" href="#__codelineno-27-16"></a><span class="w">  </span><span class="s1">'s3.secret-access-key'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'!Qivie20130113'</span>
+<a id="__codelineno-27-17" name="__codelineno-27-17" href="#__codelineno-27-17"></a><span class="p">);</span>
+<a id="__codelineno-27-18" name="__codelineno-27-18" href="#__codelineno-27-18"></a>
+<a id="__codelineno-27-19" name="__codelineno-27-19" href="#__codelineno-27-19"></a><span class="n">USE</span><span class="w"> </span><span class="k">CATALOG</span><span class="w"> </span><span class="n">polaris_flink</span><span class="p">;</span>
+<a id="__codelineno-27-20" name="__codelineno-27-20" href="#__codelineno-27-20"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">lakehouse</span><span class="p">;</span>
+<a id="__codelineno-27-21" name="__codelineno-27-21" href="#__codelineno-27-21"></a>
+<a id="__codelineno-27-22" name="__codelineno-27-22" href="#__codelineno-27-22"></a><span class="c1">-- 创建流表</span>
+<a id="__codelineno-27-23" name="__codelineno-27-23" href="#__codelineno-27-23"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">lakehouse</span><span class="p">.</span><span class="n">events</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-27-24" name="__codelineno-27-24" href="#__codelineno-27-24"></a><span class="w">    </span><span class="n">event_id</span><span class="w">   </span><span class="nb">BIGINT</span><span class="p">,</span>
+<a id="__codelineno-27-25" name="__codelineno-27-25" href="#__codelineno-27-25"></a><span class="w">    </span><span class="n">event_type</span><span class="w"> </span><span class="n">STRING</span><span class="p">,</span>
+<a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="w">    </span><span class="n">payload</span><span class="w">    </span><span class="n">STRING</span><span class="p">,</span>
+<a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="w">    </span><span class="n">event_time</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<a id="__codelineno-27-28" name="__codelineno-27-28" href="#__codelineno-27-28"></a><span class="w">    </span><span class="n">WATERMARK</span><span class="w"> </span><span class="k">FOR</span><span class="w"> </span><span class="n">event_time</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">event_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">INTERVAL</span><span class="w"> </span><span class="s1">'5'</span><span class="w"> </span><span class="k">SECOND</span>
+<a id="__codelineno-27-29" name="__codelineno-27-29" href="#__codelineno-27-29"></a><span class="p">)</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="p">(</span><span class="s1">'format-version'</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'2'</span><span class="p">);</span>
+<a id="__codelineno-27-30" name="__codelineno-27-30" href="#__codelineno-27-30"></a>
+<a id="__codelineno-27-31" name="__codelineno-27-31" href="#__codelineno-27-31"></a><span class="c1">-- 写入</span>
+<a id="__codelineno-27-32" name="__codelineno-27-32" href="#__codelineno-27-32"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">lakehouse</span><span class="p">.</span><span class="n">events</span><span class="w"> </span><span class="k">VALUES</span>
+<a id="__codelineno-27-33" name="__codelineno-27-33" href="#__codelineno-27-33"></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s1">'click'</span><span class="p">,</span><span class="w"> </span><span class="s1">'{"page":"/home"}'</span><span class="p">,</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="s1">'2026-07-25 10:00:00'</span><span class="p">);</span>
+<a id="__codelineno-27-34" name="__codelineno-27-34" href="#__codelineno-27-34"></a>
+<a id="__codelineno-27-35" name="__codelineno-27-35" href="#__codelineno-27-35"></a><span class="c1">-- 查询</span>
+<a id="__codelineno-27-36" name="__codelineno-27-36" href="#__codelineno-27-36"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">lakehouse</span><span class="p">.</span><span class="n">events</span><span class="p">;</span>
+<a id="__codelineno-27-37" name="__codelineno-27-37" href="#__codelineno-27-37"></a>
+<a id="__codelineno-27-38" name="__codelineno-27-38" href="#__codelineno-27-38"></a><span class="c1">-- 跨引擎验证：读取 Spark 创建的表</span>
+<a id="__codelineno-27-39" name="__codelineno-27-39" href="#__codelineno-27-39"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">lakehouse</span><span class="p">.</span><span class="n">orders</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="pyiceberg">九、PyIceberg 配置（可选）</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/.pyiceberg
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>~/.pyiceberg/config.yaml<span class="w"> </span><span class="s">&lt;&lt; 'EOF'</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="s">catalog:</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="s">  polaris:</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="s">    type: rest</span>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="s">    uri: http://172.16.15.15:8181/api/catalog</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="s">    warehouse: iceberg_minio</span>
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="s">    credential: "&lt;CLIENT_ID&gt;:&lt;CLIENT_SECRET&gt;"</span>
+<a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="s">    scope: "PRINCIPAL_ROLE:ALL"</span>
+<a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="s">    header:</span>
+<a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a><span class="s">      Polaris-Realm: POLARIS</span>
+<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="s">    s3:</span>
+<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="s">      endpoint: http://172.16.15.28:9000</span>
+<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="s">      access-key-id: admin</span>
+<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="s">      secret-access-key: "!Qivie20130113"</span>
+<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a><span class="s">      path-style-access: "true"</span>
+<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="s">EOF</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pyiceberg.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_catalog</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="n">catalog</span> <span class="o">=</span> <span class="n">load_catalog</span><span class="p">(</span><span class="s2">"polaris"</span><span class="p">)</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="nb">print</span><span class="p">(</span><span class="n">catalog</span><span class="o">.</span><span class="n">list_namespaces</span><span class="p">())</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="n">table</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">load_table</span><span class="p">(</span><span class="s2">"lakehouse.orders"</span><span class="p">)</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">())</span>
+</code></pre></div>
+<hr />
+<h2 id="_3">十、验证清单</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>验证项</th>
+<th>命令</th>
+<th>预期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>PostgreSQL</td>
+<td><code>docker exec polaris-postgres pg_isready</code></td>
+<td><code>accepting connections</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Polaris 健康</td>
+<td><code>curl http://172.16.15.15:8182/q/health</code></td>
+<td><code>{"status":"UP"}</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>REST API</td>
+<td><code>curl http://172.16.15.15:8181/api/catalog/v1/config</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>4</td>
+<td>OAuth2</td>
+<td><code>curl -X POST .../oauth/tokens ...</code></td>
+<td><code>access_token</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Spark 建表</td>
+<td><code>CREATE TABLE polaris.lakehouse.test ...</code></td>
+<td>成功</td>
+</tr>
+<tr>
+<td>6</td>
+<td>MinIO 落盘</td>
+<td><code>mc ls myminio/iceberg-warehouse/warehouse/lakehouse/test/</code></td>
+<td><code>metadata/</code> <code>data/</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Flink 读写</td>
+<td>SQL Client INSERT + SELECT</td>
+<td>成功</td>
+</tr>
+<tr>
+<td>8</td>
+<td>跨引擎</td>
+<td>Spark 表在 Flink <code>SHOW TABLES</code> 可见</td>
+<td>一致</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_4">十一、运维管理</h2>
+<h3 id="_5">日常操作</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># 启动 / 停止 Polaris</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>/opt/polaris/scripts/start-polaris.sh
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>/opt/polaris/scripts/stop-polaris.sh
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="c1"># 或</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>systemctl<span class="w"> </span>start<span class="w"> </span>polaris
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>systemctl<span class="w"> </span>stop<span class="w"> </span>polaris
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="c1"># 查看日志</span>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>tail<span class="w"> </span>-f<span class="w"> </span>/opt/polaris/logs/polaris.log
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>tail<span class="w"> </span>-f<span class="w"> </span>/opt/polaris/logs/polaris-stdout.log
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="c1"># PostgreSQL</span>
+<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a><span class="nb">cd</span><span class="w"> </span>/opt/polaris/postgresql<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>restart
+<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a>docker<span class="w"> </span>logs<span class="w"> </span>polaris-postgres<span class="w"> </span>--tail<span class="w"> </span><span class="m">50</span>
+<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a>
+<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="c1"># 备份</span>
+<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>polaris-postgres<span class="w"> </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>polaris<span class="w"> </span>polaris<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="w">  </span>&gt;<span class="w"> </span>/opt/polaris/backup/polaris_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
+</code></pre></div>
+<h3 id="_6">监控</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Prometheus scrape 配置</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="nt">scrape_configs</span><span class="p">:</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">job_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">polaris</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="w">    </span><span class="nt">metrics_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/q/metrics</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="w">    </span><span class="nt">static_configs</span><span class="p">:</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">targets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">'172.16.15.15:8182'</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<h3 id="_7">安全加固</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Root 凭证</td>
+<td>Bootstrap 后通过 Management API 轮换</td>
+</tr>
+<tr>
+<td>MinIO 凭证</td>
+<td>生产环境创建独立 service account，不使用 admin</td>
+</tr>
+<tr>
+<td>防火墙</td>
+<td>8181/8182/5432 仅对计算网段开放</td>
+</tr>
+<tr>
+<td>TLS</td>
+<td>Nginx 反代 Polaris 加 HTTPS</td>
+</tr>
+<tr>
+<td>凭证文件</td>
+<td><code>engine-credentials.env</code> 权限 600</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="minio_1">十二、MinIO 注意事项</h2>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pathStyleAccess</code></td>
+<td><code>true</code></td>
+<td>MinIO <strong>必须</strong>，否则 bucket 解析失败</td>
+</tr>
+<tr>
+<td><code>stsEnabled</code></td>
+<td><code>false</code></td>
+<td>MinIO 默认无 STS，引擎直连</td>
+</tr>
+<tr>
+<td><code>region</code></td>
+<td><code>us-east-1</code></td>
+<td>MinIO 不校验，S3 SDK 要求非空</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># 建议开启 bucket versioning 防误删</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>mc<span class="w"> </span><span class="nb">alias</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>myminio<span class="w"> </span>http://172.16.15.28:9000<span class="w"> </span>admin<span class="w"> </span><span class="s1">'!Qivie20130113'</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>mc<span class="w"> </span>version<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>myminio/iceberg-warehouse
+</code></pre></div>
+<hr />
+<h2 id="_8">十三、故障排查</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Polaris 启动失败</td>
+<td>Java 版本 ≠ 21</td>
+<td><code>/opt/polaris/jdk/jdk-21.0.2/bin/java -version</code> 确认</td>
+</tr>
+<tr>
+<td>连不上 PostgreSQL</td>
+<td>JDBC URL / 密码错误</td>
+<td><code>psql -h 172.16.15.15 -U polaris -d polaris</code> 测试</td>
+</tr>
+<tr>
+<td>Spark 401</td>
+<td>Client ID/Secret 错误</td>
+<td>检查 <code>/opt/polaris/config/engine-credentials.env</code></td>
+</tr>
+<tr>
+<td>S3 AccessDenied</td>
+<td>MinIO 凭证 / endpoint 错误</td>
+<td>检查 <code>s3.endpoint</code>、AK/SK</td>
+</tr>
+<tr>
+<td>数据未落盘</td>
+<td><code>path-style-access</code> 未开</td>
+<td>确认 <code>=true</code></td>
+</tr>
+<tr>
+<td>Flink 找不到类</td>
+<td>JAR 未放入 <code>lib/</code></td>
+<td>确认两个 JAR 在 <code>$FLINK_HOME/lib/</code></td>
+</tr>
+<tr>
+<td>跨引擎不可见</td>
+<td>warehouse 名不一致</td>
+<td>统一为 <code>iceberg_minio</code></td>
+</tr>
+<tr>
+<td><code>realm not found</code></td>
+<td>缺少 Header</td>
+<td>所有请求带 <code>Polaris-Realm: POLARIS</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a">附录 A：完整目录结构</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>/opt/polaris/
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>├── jdk/
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>│   └── jdk-21.0.2/                  # JDK 21（Polaris 专用，不配置环境变量）
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>│       └── bin/java                 # 绝对路径调用
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>├── server/
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>│   └── polaris-bin-1.6.0/           # Polaris 二进制
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>│       ├── bin/
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>│       │   ├── server               # Server 启动脚本（自带）
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>│       │   └── admin                # Admin 启动脚本（自带）
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>│       ├── server/                  # Server 主服务
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>│       │   ├── quarkus-run.jar      # ← 主入口
+<a id="__codelineno-33-12" name="__codelineno-33-12" href="#__codelineno-33-12"></a>│       │   ├── app/
+<a id="__codelineno-33-13" name="__codelineno-33-13" href="#__codelineno-33-13"></a>│       │   ├── lib/
+<a id="__codelineno-33-14" name="__codelineno-33-14" href="#__codelineno-33-14"></a>│       │   └── quarkus/
+<a id="__codelineno-33-15" name="__codelineno-33-15" href="#__codelineno-33-15"></a>│       └── admin/                   # Admin Tool
+<a id="__codelineno-33-16" name="__codelineno-33-16" href="#__codelineno-33-16"></a>│           ├── quarkus-run.jar      # ← Admin 入口
+<a id="__codelineno-33-17" name="__codelineno-33-17" href="#__codelineno-33-17"></a>│           ├── app/
+<a id="__codelineno-33-18" name="__codelineno-33-18" href="#__codelineno-33-18"></a>│           ├── lib/
+<a id="__codelineno-33-19" name="__codelineno-33-19" href="#__codelineno-33-19"></a>│           └── quarkus/
+<a id="__codelineno-33-20" name="__codelineno-33-20" href="#__codelineno-33-20"></a>├── postgresql/                       # PostgreSQL Docker
+<a id="__codelineno-33-21" name="__codelineno-33-21" href="#__codelineno-33-21"></a>│   ├── docker-compose.yml
+<a id="__codelineno-33-22" name="__codelineno-33-22" href="#__codelineno-33-22"></a>│   ├── data/
+<a id="__codelineno-33-23" name="__codelineno-33-23" href="#__codelineno-33-23"></a>│   └── init/
+<a id="__codelineno-33-24" name="__codelineno-33-24" href="#__codelineno-33-24"></a>│       └── 01-init.sql
+<a id="__codelineno-33-25" name="__codelineno-33-25" href="#__codelineno-33-25"></a>├── config/
+<a id="__codelineno-33-26" name="__codelineno-33-26" href="#__codelineno-33-26"></a>│   ├── application.properties        # Polaris 主配置
+<a id="__codelineno-33-27" name="__codelineno-33-27" href="#__codelineno-33-27"></a>│   └── engine-credentials.env        # 引擎凭证（bootstrap 生成）
+<a id="__codelineno-33-28" name="__codelineno-33-28" href="#__codelineno-33-28"></a>├── logs/
+<a id="__codelineno-33-29" name="__codelineno-33-29" href="#__codelineno-33-29"></a>│   ├── polaris.log                   # 应用日志
+<a id="__codelineno-33-30" name="__codelineno-33-30" href="#__codelineno-33-30"></a>│   ├── polaris-stdout.log            # 标准输出
+<a id="__codelineno-33-31" name="__codelineno-33-31" href="#__codelineno-33-31"></a>│   └── polaris-stderr.log            # 标准错误
+<a id="__codelineno-33-32" name="__codelineno-33-32" href="#__codelineno-33-32"></a>├── scripts/
+<a id="__codelineno-33-33" name="__codelineno-33-33" href="#__codelineno-33-33"></a>│   ├── start-polaris.sh
+<a id="__codelineno-33-34" name="__codelineno-33-34" href="#__codelineno-33-34"></a>│   ├── stop-polaris.sh
+<a id="__codelineno-33-35" name="__codelineno-33-35" href="#__codelineno-33-35"></a>│   └── bootstrap-catalog.sh
+<a id="__codelineno-33-36" name="__codelineno-33-36" href="#__codelineno-33-36"></a>├── backup/
+<a id="__codelineno-33-37" name="__codelineno-33-37" href="#__codelineno-33-37"></a>└── polaris.pid
+</code></pre></div>
+<h2 id="b">附录 B：端口清单</h2>
+<table>
+<thead>
+<tr>
+<th>端口</th>
+<th>服务</th>
+<th>机器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8181</td>
+<td>Polaris REST API</td>
+<td>172.16.15.15</td>
+</tr>
+<tr>
+<td>8182</td>
+<td>Polaris Health / Metrics</td>
+<td>172.16.15.15</td>
+</tr>
+<tr>
+<td>5432</td>
+<td>PostgreSQL</td>
+<td>172.16.15.15</td>
+</tr>
+<tr>
+<td>9000</td>
+<td>MinIO S3 API</td>
+<td>172.16.15.28</td>
+</tr>
+<tr>
+<td>9001</td>
+<td>MinIO Console</td>
+<td>172.16.15.28</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c">附录 C：部署顺序速查</h2>
+<pre class="mermaid"><code>flowchart TD
+    S1["1. 安装 JDK 21 → /opt/polaris/jdk/jdk-21.0.2（不配置环境变量）"]
+    S2["2. Docker 启动 PostgreSQL"]
+    S3["3. 解压 Polaris → /opt/polaris/server/polaris-bin-1.6.0"]
+    S4["4. 编写 application.properties → /opt/polaris/config/"]
+    S5["5. 启动 Polaris（使用 JDK 21 绝对路径）"]
+    S6["6. 执行 admin bootstrap（初始化 Realm + Root 凭证）"]
+    S7["7. 执行 bootstrap-catalog.sh（创建 Catalog + 引擎凭证）"]
+    S8["8. 配置 Spark spark-defaults.conf"]
+    S9["9. 配置 Flink SQL Client"]
+    S10["10. 验证跨引擎读写"]
+    S1 --&gt; S2 --&gt; S3 --&gt; S4 --&gt; S5 --&gt; S6 --&gt; S7 --&gt; S8 --&gt; S9 --&gt; S10</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

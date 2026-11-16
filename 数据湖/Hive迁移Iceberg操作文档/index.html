@@ -1,0 +1,2086 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人技术架构与笔记">
+      
+      
+      
+      
+        <link rel="prev" href="../Apache-Polaris%E4%BB%8B%E7%BB%8D/">
+      
+      
+        <link rel="next" href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用） - 我的知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hive-iceberg-hive" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="我的知识库" class="md-header__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            我的知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至暗色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至暗色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="我的知识库" class="md-nav__button md-logo" aria-label="我的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    我的知识库
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    数据湖
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Apache-Polaris%E4%BB%8B%E7%BB%8D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Apache Polaris 介绍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 迁移目标与总原则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 迁移前准备
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 迁移前准备">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-spark-hive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 让 Spark 能看到 Hive 仓库的表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-iceberg-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 确认 Iceberg catalog 可用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 盘点源表（建迁移清单）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-ctas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 方式一：CTAS 复制（正式迁移）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 方式一：CTAS 复制（正式迁移）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 小表 / 非分区表：一次性复制
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 分区表：保留分区结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 大表：按分区分批复制（生产推荐）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 数据校验（每张表必做）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 迁移窗口的增量补偿
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 方式二：snapshot 快照（迁移前验证）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 方式二：snapshot 快照（迁移前验证）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 创建快照表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 清理快照表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 风险与限制（务必知晓）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 迁移后验证清单（两侧都要查）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 迁移后验证清单（两侧都要查）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-hive-hadoop102beeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Hive 侧（hadoop102，beeline）——确认"和以前一样"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-iceberg-hadoop105spark-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Iceberg 侧（hadoop105，spark-sql）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-hdfs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 HDFS 新存储位置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 特殊场景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 特殊场景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-hive-acid-transactionaltrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Hive ACID 事务表（transactional=true）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-text-json-serde" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Text / JSON SerDe 表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 分桶表
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 回滚方案
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. FAQ
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Hive%E8%BF%81%E7%A7%BBIceberg%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hive 迁移 Iceberg 方案
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11.0-%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11.0 部署文档（hadoop105 客户端节点）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-1.11%E9%83%A8%E7%BD%B2%E7%AC%94%E8%AE%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg 1.11 部署笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v2）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Iceberg-MinIO-Polaris%E9%83%A8%E7%BD%B2-v4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iceberg + MinIO + Apache Polaris 部署方案（v4）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Polaris-Iceberg%E6%B9%96%E4%BB%93%E9%83%A8%E7%BD%B2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Polaris + Iceberg 湖仓部署
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94-2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2026 年开放表格式(Open Table Format)全景与详细对比
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E5%8E%9F%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式原理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BC%80%E6%94%BE%E8%A1%A8%E6%A0%BC%E5%BC%8F%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开放表格式技术选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%95%B0%E6%8D%AE%E6%B9%96%E7%AE%80%E4%BB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据湖简介
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%80%BB%E7%BB%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体总结
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E6%94%B9%E9%80%A0%E6%96%B9%E6%A1%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    从离线数仓到湖仓一体：架构改造方案说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    湖仓一体架构选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E7%A6%BB%E7%BA%BF%E6%95%B0%E4%BB%93%E5%90%91%E6%B9%96%E4%BB%93%E4%B8%80%E4%BD%93%E6%94%B9%E9%80%A0%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    离线数仓向湖仓一体架构改造说明文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    高质量数据集
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%B8%B4%E5%BA%8A%E5%8C%BB%E5%AD%A6%E7%A0%94%E7%A9%B6%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86%E8%A7%84%E8%8C%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    临床医学研究质量管理规范
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    什么是高质量数据集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E6%95%B0%E6%8D%AE%E4%BA%A7%E5%93%81%E4%BA%A7%E4%B8%9A%E4%BF%A1%E5%8F%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗数据产品产业信号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8C%BB%E7%96%97%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%A7%A3%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    医疗高质量数据集解析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E5%8F%AF%E4%BF%A1%E6%95%B0%E6%8D%AE%E7%A9%BA%E9%97%B4%E4%B8%8E%E8%8D%AF%E4%BC%81RWD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可信数据空间与药企 RWD 数据库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%96%87%E6%A1%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集工作文档
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86/%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%B4%E6%98%8E/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高质量数据集说明
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 迁移目标与总原则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 迁移前准备
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 迁移前准备">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-spark-hive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 让 Spark 能看到 Hive 仓库的表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-iceberg-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 确认 Iceberg catalog 可用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 盘点源表（建迁移清单）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-ctas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 方式一：CTAS 复制（正式迁移）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 方式一：CTAS 复制（正式迁移）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 小表 / 非分区表：一次性复制
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 分区表：保留分区结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 大表：按分区分批复制（生产推荐）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 数据校验（每张表必做）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 迁移窗口的增量补偿
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 方式二：snapshot 快照（迁移前验证）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 方式二：snapshot 快照（迁移前验证）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 创建快照表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 清理快照表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 风险与限制（务必知晓）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 迁移后验证清单（两侧都要查）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 迁移后验证清单（两侧都要查）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-hive-hadoop102beeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Hive 侧（hadoop102，beeline）——确认"和以前一样"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-iceberg-hadoop105spark-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Iceberg 侧（hadoop105，spark-sql）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-hdfs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 HDFS 新存储位置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 特殊场景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 特殊场景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-hive-acid-transactionaltrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Hive ACID 事务表（transactional=true）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-text-json-serde" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Text / JSON SerDe 表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 分桶表
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 回滚方案
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. FAQ
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="hive-iceberg-hive">Hive → Iceberg 数据迁移文档（保留 Hive 仓库完整可用）</h1>
+<blockquote>
+<p>配套文档：《Iceberg-1.11.0-部署文档.md》
+环境：hadoop105 客户端节点（Spark 4.1.3 / Flink 2.1.3 / Iceberg 1.11.0）；Hive 3.1.3 在 hadoop102
+迁移后 Iceberg 数据落在<strong>新存储位置</strong> <code>hdfs://hadoop102:8020/warehouse/iceberg</code></p>
+</blockquote>
+<hr />
+<h2 id="1">1. 迁移目标与总原则</h2>
+<ul>
+<li><strong>目标</strong>：把 Hive 数仓中的表迁移为 Iceberg 格式，数据写入新存储位置</li>
+<li><strong>硬性要求</strong>：迁移完成后，Hive 数据仓库<strong>原样保留、和以前完全一样可用</strong>（表名不变、数据不动、可继续正常读写）</li>
+<li>基于该要求的方式选型：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>是否采用</th>
+<th>角色</th>
+<th>对 Hive 侧影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CTAS 复制</strong></td>
+<td>✅</td>
+<td><strong>正式迁移方案</strong></td>
+<td>零改动，彻底解耦</td>
+</tr>
+<tr>
+<td><strong>snapshot 快照</strong></td>
+<td>✅</td>
+<td><strong>迁移前验证手段</strong></td>
+<td>零改动（共享引用源文件，只读验证用）</td>
+</tr>
+<tr>
+<td>~~migrate~~</td>
+<td>❌</td>
+<td>不采用</td>
+<td>会把源表改名 <em>BACKUP</em> 并接管原表名，改变了 Hive 侧，不符合本需求</td>
+</tr>
+<tr>
+<td>~~add_files~~</td>
+<td>❌</td>
+<td>不采用</td>
+<td>文件归 Iceberg 所有，expire_snapshots 会物理删除 Hive 目录下的文件</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>一句话：<strong>snapshot 用来"先试"，CTAS 用来"真迁"</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="2">2. 迁移前准备</h2>
+<h3 id="21-spark-hive">2.1 让 Spark 能看到 Hive 仓库的表</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 把 Hive 配置放进 Spark classpath（spark_catalog 才能映射到 Hive 仓库）</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>cp<span class="w"> </span>/opt/module/hive-client-conf/hive-site.xml<span class="w"> </span>/opt/module/spark/conf/
+</code></pre></div>
+<p>验证（hadoop105 上执行 <code>spark-sql --master yarn</code>）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">SHOW</span><span class="w"> </span><span class="n">DATABASES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">SHOW</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">;</span><span class="w">    </span><span class="c1">-- hive_db 换成你的实际库名</span>
+</code></pre></div>
+<h3 id="22-iceberg-catalog">2.2 确认 Iceberg catalog 可用</h3>
+<p>部署文档已配置名为 <code>iceberg</code> 的 catalog（warehouse = <code>hdfs://hadoop102:8020/warehouse/iceberg</code>）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">SHOW</span><span class="w"> </span><span class="n">DATABASES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">iceberg</span><span class="p">;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">;</span><span class="w">   </span><span class="c1">-- 目标库，按规划命名</span>
+</code></pre></div>
+<h3 id="23">2.3 盘点源表（建迁移清单）</h3>
+<p>对每张待迁移表执行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">DESCRIBE</span><span class="w"> </span><span class="n">EXTENDED</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="err">表名</span><span class="p">;</span>
+</code></pre></div>
+<p>记录以下信息，决定迁移路径：</p>
+<table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>格式 Parquet / ORC / Avro / Text</td>
+<td>直接 CTAS（CTAS 不限格式，Spark 能读即可）</td>
+</tr>
+<tr>
+<td><code>transactional=true</code>（ACID 表）</td>
+<td>Spark 读不了，走 6.1 节特殊处理</td>
+</tr>
+<tr>
+<td>分桶表</td>
+<td>CTAS 不受限，桶语义见 6.3 节</td>
+</tr>
+<tr>
+<td>分区字段</td>
+<td>记下来，3.2/3.3 节要用</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-ctas">3. 方式一：CTAS 复制（正式迁移）</h2>
+<blockquote>
+<p>原理：<code>CREATE TABLE ... AS SELECT</code> 把 Hive 表数据<strong>复制</strong>成 Iceberg 表的新文件，写入
+<code>/warehouse/iceberg</code> 新位置。源表全程零改动，迁移后两套数据完全独立、互不影响。</p>
+</blockquote>
+<h3 id="31">3.1 小表 / 非分区表：一次性复制</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">orders</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">TBLPROPERTIES</span><span class="w"> </span><span class="p">(</span><span class="s1">'format-version'</span><span class="o">=</span><span class="s1">'2'</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">AS</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">orders</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="32">3.2 分区表：保留分区结构</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">PARTITIONED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">TBLPROPERTIES</span><span class="w"> </span><span class="p">(</span><span class="s1">'format-version'</span><span class="o">=</span><span class="s1">'2'</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">AS</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+</code></pre></div>
+<blockquote>
+<p>说明：<code>PARTITIONED BY (dt)</code> 是 identity 分区，与 Hive 分区一一对应；
+后续可利用 Iceberg 分区演进（如 <code>days(dt)</code>）无损优化，无需重写数据。</p>
+</blockquote>
+<h3 id="33">3.3 大表：按分区分批复制（生产推荐）</h3>
+<p>避免单个大任务超时/OOM，先建空表再逐分区灌数：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">-- 1) 用 WHERE 1=0 秒建同构空表</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">PARTITIONED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">AS</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="mi">1</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1">-- 2) 逐分区灌数</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'2026-07-20'</span><span class="p">;</span>
+</code></pre></div>
+<p>批量脚本 <code>batch_copy.sh</code>（自动遍历所有分区）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">SRC</span><span class="o">=</span>spark_catalog.hive_db.dwd_trade
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">DST</span><span class="o">=</span>iceberg.iceberg_db.dwd_trade
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">for</span><span class="w"> </span>p<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>spark-sql<span class="w"> </span>--master<span class="w"> </span>yarn<span class="w"> </span>-e<span class="w"> </span><span class="s2">"SHOW PARTITIONS </span><span class="nv">$SRC</span><span class="s2">"</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-o<span class="w"> </span><span class="s1">'dt=[^/|]*'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="o">=</span><span class="w"> </span>-f2<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u<span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"===== copying partition dt=</span><span class="nv">$p</span><span class="s2"> ====="</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>spark-sql<span class="w"> </span>--master<span class="w"> </span>yarn<span class="w"> </span>-e<span class="w"> </span><span class="s2">"INSERT INTO </span><span class="nv">$DST</span><span class="s2"> SELECT * FROM </span><span class="nv">$SRC</span><span class="s2"> WHERE dt='</span><span class="nv">$p</span><span class="s2">'"</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="k">done</span>
+</code></pre></div>
+<blockquote>
+<p>提示：单分区仍很大时，调大 <code>spark.sql.shuffle.partitions</code> 与 executor 内存；
+多个表可并行多个 spark-sql 会话分别复制。</p>
+</blockquote>
+<h3 id="34">3.4 数据校验（每张表必做）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">-- 总量对比</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1">-- 分区级对比（两段结果应逐行一致）</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">dt</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">c</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="w"> </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">dt</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">c</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="w"> </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1">-- 指标抽查（按业务字段，如金额求和）</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="35">3.5 迁移窗口的增量补偿</h3>
+<p>若复制期间 Hive 表仍在写入，切换前对增量分区分区重灌（先删后插，幂等）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">DELETE</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="s1">'2026-07-20'</span><span class="p">;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="s1">'2026-07-20'</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="4-snapshot">4. 方式二：snapshot 快照（迁移前验证）</h2>
+<blockquote>
+<p>原理：Iceberg 官方 <code>snapshot</code> 存储过程，秒级创建一张<strong>引用源表现有数据文件</strong>的
+Iceberg 表，不复制任何数据，源表完全不动。用于正式 CTAS 之前验证查询正确性与性能。</p>
+</blockquote>
+<h3 id="41">4.1 创建快照表</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">CALL</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="k">system</span><span class="p">.</span><span class="n">snapshot</span><span class="p">(</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="s1">'spark_catalog.mt_ods.ods_mt_medical_record_first_disease'</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="s1">'iceberg.mt_ods_ice.ods_mt_medical_record_first_disease'</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">);</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1">-- 输出 imported_files_count：引用的数据文件数</span>
+</code></pre></div>
+<h3 id="42">4.2 验证</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">-- 行数应与源表一致</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade_snap</span><span class="p">;</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">-- 业务查询试跑 + 性能对比</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade_snap</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'2026-07-20'</span><span class="w"> </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">-- 可用 Flink sql-client 读同一 catalog，验证跨引擎可见</span>
+</code></pre></div>
+<h3 id="43">4.3 清理快照表</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade_snap</span><span class="p">;</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1">-- 只删除快照表自身的元数据，共享的数据文件分毫不动，Hive 侧无任何变化</span>
+</code></pre></div>
+<h3 id="44">4.4 风险与限制（务必知晓）</h3>
+<ul>
+<li>快照表与源表<strong>共享同一批数据文件</strong>：源表若执行 DELETE / OVERWRITE / DROP，底层文件被删，快照表随即损坏 → 快照只在验证窗口内使用，验证完立即 DROP</li>
+<li>快照表<strong>禁止 expire_snapshots</strong>（Iceberg 强制保护共享文件，防止误删 Hive 数据）</li>
+<li>源表后续<strong>新写入的数据不会出现在快照中</strong>（快照只引用创建时刻的文件清单），两侧会分叉</li>
+<li>因此：<strong>正式迁移一律走 CTAS，不要把快照表当正式表长期使用</strong></li>
+</ul>
+<hr />
+<h2 id="5">5. 迁移后验证清单（两侧都要查）</h2>
+<h3 id="51-hive-hadoop102beeline">5.1 Hive 侧（hadoop102，beeline）——确认"和以前一样"</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">SHOW</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">hive_db</span><span class="p">;</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">hive_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="c1">-- 再跑 1~2 个原有的业务查询/报表</span>
+</code></pre></div>
+<p>✅ 表在、数在、查询正常 = Hive 仓库零影响，达成目标。</p>
+<h3 id="52-iceberg-hadoop105spark-sql">5.2 Iceberg 侧（hadoop105，spark-sql）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">;</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="n">record_count</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">.</span><span class="n">files</span><span class="p">;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">dwd_trade</span><span class="p">.</span><span class="n">snapshots</span><span class="p">;</span>
+</code></pre></div>
+<p>再用 Flink sql-client 读一次（验证跨引擎）：<code>SELECT count(*) FROM iceberg_db.dwd_trade;</code></p>
+<h3 id="53-hdfs">5.3 HDFS 新存储位置</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>/warehouse/iceberg/iceberg_db/dwd_trade/<span class="w">   </span><span class="c1"># 应有 data/ 与 metadata/</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>hdfs<span class="w"> </span>dfs<span class="w"> </span>-du<span class="w"> </span>-h<span class="w"> </span>/warehouse/iceberg<span class="w">                      </span><span class="c1"># 新增存储与源表相当，属预期</span>
+</code></pre></div>
+<hr />
+<h2 id="6">6. 特殊场景</h2>
+<h3 id="61-hive-acid-transactionaltrue">6.1 Hive ACID 事务表（transactional=true）</h3>
+<p>Spark/Flink 均无法读取 Hive ACID 表。先在 Hive 侧（beeline）导出为普通外部表，再走 CTAS：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">EXTERNAL</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">hive_db</span><span class="p">.</span><span class="n">xxx_export</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">STORED</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">PARQUET</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">LOCATION</span><span class="w"> </span><span class="s1">'hdfs://hadoop102:8020/tmp/export/xxx'</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="k">AS</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">hive_db</span><span class="p">.</span><span class="n">xxx</span><span class="p">;</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="c1">-- 然后对 hive_db.xxx_export 执行第 3 章 CTAS 流程</span>
+</code></pre></div>
+<h3 id="62-text-json-serde">6.2 Text / JSON SerDe 表</h3>
+<p>直接 CTAS 即可（Spark 能读就能迁），无需特殊处理。</p>
+<h3 id="63">6.3 分桶表</h3>
+<p>CTAS 不受分桶限制。如需保留桶语义（ bucket join 等），建表时用 Iceberg transform：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">iceberg</span><span class="p">.</span><span class="n">iceberg_db</span><span class="p">.</span><span class="n">xxx</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">USING</span><span class="w"> </span><span class="n">iceberg</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="n">PARTITIONED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="p">(</span><span class="n">bucket</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="n">id</span><span class="p">))</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="k">AS</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">spark_catalog</span><span class="p">.</span><span class="n">hive_db</span><span class="p">.</span><span class="n">xxx</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="7">7. 回滚方案</h2>
+<ul>
+<li><strong>CTAS 方案</strong>：Hive 侧全程零改动，天然无回滚负担；若要废弃 Iceberg 表：
+  <code>DROP TABLE iceberg.iceberg_db.xxx PURGE;</code>（只删 <code>/warehouse/iceberg</code> 下的新数据）</li>
+<li><strong>snapshot 方案</strong>：<code>DROP TABLE ..._snap;</code> 即可，共享文件不动</li>
+</ul>
+<hr />
+<h2 id="8-faq">8. FAQ</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CTAS 大表 OOM / 超时</td>
+<td>改用 3.3 按分区分批复制，调大 executor 内存与 <code>spark.sql.shuffle.partitions</code></td>
+</tr>
+<tr>
+<td>分区表 CTAS 后查不到分区</td>
+<td>确认 <code>PARTITIONED BY</code> 的列名、顺序与源表分区列一致</td>
+</tr>
+<tr>
+<td>snapshot 表查询报错</td>
+<td>源表在快照后被改动过，DROP 后重建快照</td>
+</tr>
+<tr>
+<td>校验行数不一致</td>
+<td>复制期间源表有新写入，按 3.5 节做增量补偿后重验</td>
+</tr>
+<tr>
+<td>ACID 表 CTAS 直接报错</td>
+<td>Spark 不支持读 Hive ACID 表，走 6.1 节导出流程</td>
+</tr>
+<tr>
+<td><code>SHOW TABLES IN spark_catalog</code> 看不到 Hive 表</td>
+<td>hive-site.xml 未放进 <code>$SPARK_HOME/conf/</code>，见 2.1 节</td>
+</tr>
+<tr>
+<td>迁移后想统一表名入口</td>
+<td>业务切到 Iceberg catalog 同名表即可；Hive 侧原名不受影响</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<blockquote>
+<p>参考来源：<a href="https://iceberg.apache.org/docs/latest/spark-procedures/">Iceberg Spark Procedures</a>（snapshot/add_files/migrate 官方语义，2026-07 核实）
+<img alt="Hive 到 Iceberg 迁移验证截图 1" src="../assets/iceberg-migration-01.png" /></p>
+</blockquote>
+<p><img alt="Hive 到 Iceberg 迁移验证截图 2" src="../assets/iceberg-migration-02.png" /></p>
+<p><img alt="Hive 到 Iceberg 迁移验证截图 3" src="../assets/iceberg-migration-03.png" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
