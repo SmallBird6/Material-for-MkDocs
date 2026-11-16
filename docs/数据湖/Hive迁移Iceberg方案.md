@@ -1,6 +1,8 @@
-# 一、迁移方式
+# Hive 迁移 Iceberg 方案
 
-## 1.1 migrate
+## 一、迁移方式
+
+### 1.1 migrate
 
 官方提供的原生迁移方式之一，用来进行大规模迁移，原地接管模式
 
@@ -11,7 +13,7 @@
 
 不适用于此次迁移验证，我们需要保留Hive的数据和元数据，Hive还要可用
 
-## 1.2 snapshot
+### 1.2 snapshot
 
 官方提供的只读快照方式
 
@@ -20,7 +22,7 @@
 
 不适用于此次迁移验证，之后Hive的操作会影响使用，未分离开
 
-## 1.3 CTAS
+### 1.3 CTAS
 
 数据复制，最慢的迁移方式，但是适用于此次迁移验证
 
@@ -28,11 +30,11 @@
 - 执行SQL，`CREATE TABLE ... AS SELECT` 把Hive表数据**复制**成Iceberg表的新文件，写入`/warehouse/iceberg` 新位置。源表全程零改动，迁移后两套数据完全独立、互不影响
 - 物理复制全量数据
 
-# 二、迁移
+## 二、迁移
 
 进行少量表迁移认证，Spark操作：
 
-## 2.1 创建Iceberg目标数据库
+### 2.1 创建Iceberg目标数据库
 
 ```sql
 CREATE DATABASE IF NOT EXISTS iceberg.dim_mt;
@@ -41,7 +43,7 @@ CREATE DATABASE IF NOT EXISTS iceberg.dwd_mt;
 CREATE DATABASE IF NOT EXISTS iceberg.dws_mt;
 ```
 
-## 2.2 CTAS 建表与数据复制 SQL
+### 2.2 CTAS 建表与数据复制 SQL
 
 ```sql
 -- 1.1 dim_icd10_code
@@ -100,6 +102,6 @@ USING iceberg TBLPROPERTIES ('format-version'='2')
 AS SELECT * FROM spark_catalog.mt_dws.tmp_clinical_fill_pid;
 ```
 
-## 2.3 验证
+### 2.3 验证
 
 验证Hive表的行数和Iceberg表的行数

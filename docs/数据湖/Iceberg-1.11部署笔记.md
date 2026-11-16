@@ -1,10 +1,12 @@
+# Iceberg 1.11 部署笔记
+
 
 > **关键说明**
 > 1. Iceberg不是独立服务，没有守护进程，部署Iceberg就是将Iceberg的runtime.jar放进Spark/Flink的类路径并配置Catalog
 > 2. `172.16.15.15`这台机器定位为客户端，不运行HDFS、Yarn服务，只负责提交作业
 > 3. Iceberg使用HiveMetaStore作为Catalog，数据文件存放再集群HDFS上
 
-# 一、部署机器说明
+## 一、部署机器说明
 
 | 主机           | 服务                          |
 | ------------ | --------------------------- |
@@ -15,23 +17,23 @@
 
 **文档中涉及的部署默认是在172.16.15.15上执行**
 
-# 二、环境准备
+## 二、环境准备
 
-## 2.1 JDK17
+### 2.1 JDK17
 
 安装JDK17，并将安装包分发到其他的节点
 
-## 2.2 拷贝Hadoop客户端
+### 2.2 拷贝Hadoop客户端
 
 将hadoop102上的hadoop拷贝到15上：`scp -r hadoop102:/opt/module/hadoop-3.3.4 /data`
 
-## 2.3 拷贝Hive配置文件
+### 2.3 拷贝Hive配置文件
 
 创建文件夹：`mkdir -r /data/hive/conf`
 
 拷贝配置文件：`cp hadoop102:/opt/module/hive/conf/hive-site.xml /data/hive/conf/`
 
-## 2.4 配置环境变量
+### 2.4 配置环境变量
 
 ```bash
 # JDK
@@ -47,7 +49,7 @@ export HIVE_CONF_DIR=/data/hive/conf
 export HADOOP_CLASSPATH=`$HADOOP_HOME/bin/hadoop classpath`
 ```
 
-# 三、部署Spark4.1.3 + Iceberg
+## 三、部署Spark4.1.3 + Iceberg
 
 1. 解压安装包，解压之后路径`/data/spark-4.1.3`
 2. 下载并上传Iceberg Spark Runtime，放入Spark jars目录 `iceberg-spark-runtime-4.1_2.13-1.11.0.jar`
@@ -89,7 +91,7 @@ spark.executorEnv.JAVA_HOME          /opt/module/jdk17
 ```
 6. `hdfs dfs -mkdir -p /sparkHistory`
 
-# 四、部署Flink2.1.3 + Iceberg
+## 四、部署Flink2.1.3 + Iceberg
 
 1. 解压安装包，解压之后路径`/data/flink-2.1.3`
 2. 下载并上传Iceberg Flink Runtime，放入Flink lib目录 `iceberg-flink-runtime-2.1-1.11.0.jar`
@@ -113,9 +115,9 @@ env:
     home: /data/jdk17
 ```
 
-# 五、验证
+## 五、验证
 
-## 5.1 Spark验证
+### 5.1 Spark验证
 
 ```bash
 spark-sql --master yarn
@@ -143,7 +145,7 @@ SELECT * FROM iceberg.iceberg_db.sample VERSION AS OF <snapshot_id>;
 CALL iceberg.system.rewrite_data_files('iceberg_db.sample');
 ```
 
-# 5.2 Flink验证
+### 5.2 Flink验证
 
 ```bash
 yarn-session.sh

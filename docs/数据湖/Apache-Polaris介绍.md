@@ -1,4 +1,6 @@
-# 一、Polaris介绍
+# Apache Polaris 介绍
+
+## 一、Polaris介绍
 
 **定义**：Apache Polaris是一个**开源的、全功能的Apache Iceberg REST Catalog实现**。它实现了Iceberg REST Catalog开放协议，为各种计算引擎提供集中式、安全的Iceberg表读写访问能力
 
@@ -39,9 +41,9 @@ flowchart LR
 | **Federation**         | 联邦外部 Catalog（Hive Metastore、BigQuery、其他 REST Catalog） |
 | **可观测性**               | 内置 Prometheus 指标、OpenTelemetry 追踪                     |
 
-# 二、核心概念
+## 二、核心概念
 
-## 2.1 实体模型
+### 2.1 实体模型
 
 ```mermaid
 flowchart TD
@@ -77,7 +79,7 @@ flowchart TD
 - 元数据由 Polaris 管理
 - 数据文件存储在绑定的对象存储中
 
-## 2.2 安全模型（RBAC）
+### 2.2 安全模型（RBAC）
 
 ```mermaid
 flowchart LR

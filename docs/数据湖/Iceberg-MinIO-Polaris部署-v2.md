@@ -1,4 +1,4 @@
-# Iceberg + MinIO + Apache Polaris 部署方案
+# Iceberg + MinIO + Apache Polaris 部署方案（v2）
 
 > **版本**：v2.0  
 > **日期**：2026-07-24  
